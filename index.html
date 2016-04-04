@@ -1,1 +1,43 @@
-Hello World
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>APHELION</title>
+    <style>
+      canvas {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background: transparent;
+		cursor:none;
+      }
+      #background {
+        z-index: -2;
+      }
+      #main {
+        z-index: -1;
+      }
+      #foreground {
+        z-index: 0;
+      }
+	  .viewport {
+		border: 5px solid #201513;
+		width: 600px;
+		height: 360px;
+		margin: 30px auto;
+		overflow: hidden;
+		border-radius: 5px;
+		box-shadow: 0 0 5px 5px #503530;
+		position: relative;
+		font-family: Offside, sans-serif;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	  }
+    </style>
+  </head>
+  <body onload="init()">
+	<div id="maindiv" />
+    <script src="engine/testVelocity.js"></script>
+  </body>
+</html>
