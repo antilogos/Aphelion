@@ -32,20 +32,31 @@ function initMenu() {
   // Création des différents menus
   mainMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Main");
   optionMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Option");
+  hallMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Hall");
   settingMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Setting");
   researchMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Research");
   hangarMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Hangar");
   missionMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Missions");
   pauseMenu = new MenuObject(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 4, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, document.getElementById('menu'), "Pause");
-  mainMenu.items.unshift(new ButtonObject(20,20,50,50,mainMenu.canvas,"testButton", function() {
-    openMenu(optionMenu);
-  } ));
-  optionMenu.items.unshift(new ButtonObject(20,20,300,50,mainMenu.canvas,"test 1", function() {
-    openMenu(-1);
-  } ));
-  optionMenu.items.unshift(new ButtonObject(20,70,300,50,mainMenu.canvas,"test 2", function() {
-    openMenu(-1);
-  } ));
+
+  mainMenu.items.unshift(new ButtonObject(20,20,50,50,mainMenu.canvas,"Hall", function() { openMenu(hallMenu); } ));
+  mainMenu.items.unshift(new ButtonObject(20,70,50,50,mainMenu.canvas,"*Save", function() { openMenu(optionMenu); } ));
+  mainMenu.items.unshift(new ButtonObject(220,70,50,50,mainMenu.canvas,"*Load", function() { openMenu(optionMenu); } ));
+  mainMenu.items.unshift(new ButtonObject(20,120,50,50,mainMenu.canvas,"*Option", function() { openMenu(optionMenu); } ));
+
+  optionMenu.items.unshift(new ButtonObject(20,70,300,50,mainMenu.canvas,"Back", function() { openMenu(-1); } ));
+
+  hallMenu.items.unshift(new ButtonObject(20,20,300,50,mainMenu.canvas,"Headquarter", function() { openMenu(missionMenu); } ));
+  hallMenu.items.unshift(new ButtonObject(20,70,300,50,mainMenu.canvas,"*Hangar", function() { openMenu(-1); } ));
+  hallMenu.items.unshift(new ButtonObject(20,120,300,50,mainMenu.canvas,"*Research", function() { openMenu(-1); } ));
+  hallMenu.items.unshift(new ButtonObject(20,170,300,50,mainMenu.canvas,"*Setting", function() { openMenu(-1); } ));
+  hallMenu.items.unshift(new ButtonObject(20,220,70,50,mainMenu.canvas,"*Save", function() { openMenu(-1); } ));
+  hallMenu.items.unshift(new ButtonObject(220,220,70,50,mainMenu.canvas,"*Load", function() { openMenu(-1); } ));
+  hallMenu.items.unshift(new ButtonObject(20,270,300,50,mainMenu.canvas,"Back", function() { openMenu(-1); } ));
+
+  missionMenu.items.unshift(new ButtonObject(20,20,300,50,mainMenu.canvas,"Start", function() { openMenu(-1); } ));
+  missionMenu.items.unshift(new ButtonObject(20,270,300,50,mainMenu.canvas,"Back", function() { openMenu(-1); } ));
+
   // Open the main menu
   openMenu(mainMenu);
   // Launch the animation
