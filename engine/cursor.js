@@ -8,6 +8,10 @@ function Cursor() {
 	// Mouse position defines target wanted velocity
 	this.mouseX;
 	this.mouseY;
+    this.positionH;
+    this.positionV;
+    this.velocityH;
+    this.velocityV;
 	// Rubber banding factor : smooth inertia around 4, superior to 5 = no rubber banding
 	this.accelerationCap = 50;
 	// Translate distance of mouse in pixel to velocity : smooth velocity around 0.3, 
@@ -29,12 +33,20 @@ function Cursor() {
 	this.collidableWith = COLLISION_MASK_WEAPON_PASSERBY;
 	this.shieldRepair = 1.125;
 	this.shield = 100;
+    this.bgCanvas = fieldMenu.bgCanvas.getContext('2d');
+    this.fgCanvas = fieldMenu.fgCanvas.getContext('2d');
+    this.mainCanvas = fieldMenu.canvas.getContext('2d');
 	
-	this.notable = 51; // 1 = Danmaku, 2 = Dreadnaugh, 4 = Afterburner, 8 = Emergencydrive, 16 = Inertiacore, 32 = Autofire, 64 = Powerrouting
+	this.notable = 35; // 1 = Danmaku, 2 = Dreadnaugh, 4 = Afterburner, 8 = Emergencydrive, 16 = Inertiacore, 32 = Autofire, 64 = Powerrouting
 	
 	this.init = function () {
 		this.mountedWeapon = new weapon();
 		this.hull = HULL_WHISP;
+		this.deployScene();
+		this.positionH = 0;
+		this.positionV = 0;
+		this.velocityH = 0;
+		this.velocityV = 0;
 	}
 	
 	this.updateConfiguration = function () {
@@ -57,14 +69,16 @@ function Cursor() {
 	}
 	
 	this.deployScene = function () {
-		this.mouseX = engine.mainCanvas.clientWidth/2;
-		this.mouseY = engine.mainCanvas.clientHeight/2;
+		this.mouseX = this.mainCanvas.canvas.clientWidth/2;
+		this.mouseY = this.mainCanvas.canvas.clientHeight/2;
 		this.updateConfiguration();
 	}
 	
 	this.move = function() {
+	    this.mouseX = inputListener.mouseX;
+	    this.mouseY = inputListener.mouseY;
 		// Clear cusor at center
-		this.context.clearRect( (engine.mainCanvas.clientWidth - this.width - 30)/2, (engine.mainCanvas.clientHeight - this.height - 30)/2, this.width + 30, this.height + 30);
+		this.mainCanvas.clearRect( (this.mainCanvas.canvas.clientWidth - this.width - 30)/2, (this.mainCanvas.canvas.clientHeight - this.height - 30)/2, this.width + 30, this.height + 30);
 		
 		// Actualize Time
 		var updateTime = Date.now() - this.lastseen;
@@ -74,8 +88,8 @@ function Cursor() {
 		
 		// Calculate differential movement
 		// DEBUG test with raw velocity (1 px = 1 velocity)
-		var diffX = ((this.mouseX-engine.mainCanvas.clientWidth/2) * this.pointToVelocity) - this.velocityH;
-		var diffY = ((this.mouseY-engine.mainCanvas.clientHeight/2) * this.pointToVelocity) - this.velocityV;
+		var diffX = ((this.mouseX-this.mainCanvas.canvas.clientWidth/2) * this.pointToVelocity) - this.velocityH;
+		var diffY = ((this.mouseY-this.mainCanvas.canvas.clientHeight/2) * this.pointToVelocity) - this.velocityV;
 		var diffT = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
 		var diffH = diffT==0 ? diffT : Math.min(diffT, this.accelerationCap) / diffT * diffX * latencyExpectation;
 		var diffV = diffT==0 ? diffT : Math.min(diffT, this.accelerationCap) / diffT * diffY * latencyExpectation;
@@ -86,8 +100,8 @@ function Cursor() {
 		} else {
 			if(this.notable / 16 & 1) {
 				// inertiacore does not suffer inertia
-				this.velocityH = (this.mouseX-engine.mainCanvas.clientWidth / 2) * this.pointToVelocity * latencyExpectation;
-				this.velocityV = (this.mouseY-engine.mainCanvas.clientHeight / 2) * this.pointToVelocity * latencyExpectation;
+				this.velocityH = (this.mouseX-this.mainCanvas.canvas.clientWidth / 2) * this.pointToVelocity * latencyExpectation;
+				this.velocityV = (this.mouseY-this.mainCanvas.canvas.clientHeight / 2) * this.pointToVelocity * latencyExpectation;
 			} else {
 				this.velocityH += diffH;
 				this.velocityV += diffV;
@@ -144,46 +158,46 @@ function Cursor() {
 		}
 		
 		// Redraw cursor at center
-		this.context.beginPath();
-		this.context.arc(engine.mainCanvas.clientWidth / 2, engine.mainCanvas.clientHeight / 2, this.radius, 0, 2 * Math.PI, false);
-		this.context.lineWidth = 1;
-		this.context.strokeStyle = '#330000';
-		this.context.stroke();
+		this.mainCanvas.beginPath();
+		this.mainCanvas.arc(this.mainCanvas.canvas.clientWidth / 2, this.mainCanvas.canvas.clientHeight / 2, this.radius, 0, 2 * Math.PI, false);
+		this.mainCanvas.lineWidth = 1;
+		this.mainCanvas.strokeStyle = '#330000';
+		this.mainCanvas.stroke();
 		
 		// emergencydrive effect
 		if(this.notable / 8 & 1 && this.shield < this.shieldCapacity / 2) {
-			this.context.beginPath();
-			this.context.arc(engine.mainCanvas.clientWidth / 2, engine.mainCanvas.clientHeight / 2, this.radius+3, (this.lastseen/100)%(2 * Math.PI), (this.lastseen/100)%(2 * Math.PI)+Math.PI/3, false);
-			this.context.lineWidth = 2;
-			this.context.strokeStyle = '#AA55AA';
-			this.context.stroke();
-			this.context.beginPath();
-			this.context.arc(engine.mainCanvas.clientWidth / 2, engine.mainCanvas.clientHeight / 2, this.radius+3, (this.lastseen/100)%(2 * Math.PI)+Math.PI, (this.lastseen/100)%(2 * Math.PI)+Math.PI/3+Math.PI, false);
-			this.context.lineWidth = 2;
-			this.context.strokeStyle = '#AA55AA';
-			this.context.stroke();
+			this.mainCanvas.beginPath();
+			this.mainCanvas.arc(this.mainCanvas.canvas.clientWidth / 2, this.mainCanvas.canvas.clientHeight / 2, this.radius+3, (this.lastseen/100)%(2 * Math.PI), (this.lastseen/100)%(2 * Math.PI)+Math.PI/3, false);
+			this.mainCanvas.lineWidth = 2;
+			this.mainCanvas.strokeStyle = '#AA55AA';
+			this.mainCanvas.stroke();
+			this.mainCanvas.beginPath();
+			this.mainCanvas.arc(this.mainCanvas.canvas.clientWidth / 2, this.mainCanvas.canvas.clientHeight / 2, this.radius+3, (this.lastseen/100)%(2 * Math.PI)+Math.PI, (this.lastseen/100)%(2 * Math.PI)+Math.PI/3+Math.PI, false);
+			this.mainCanvas.lineWidth = 2;
+			this.mainCanvas.strokeStyle = '#AA55AA';
+			this.mainCanvas.stroke();
 		}
 		
 		// Scroll background
-		engine.background.draw();
+		fieldMenu.background.draw();
 		
 		// heat bar
 		// Create gradient
-		gradient = engine.bgContext.createLinearGradient(10, 0, 10+100*this.heat/this.heatCapacity, 0);
+		gradient = this.bgCanvas.createLinearGradient(10, 0, 10+100*this.heat/this.heatCapacity, 0);
 		gradient.addColorStop(0, "#ff0000");
 		gradient.addColorStop(1, "#ffff00");
-		engine.bgContext.fillStyle = gradient;
+		this.bgCanvas.fillStyle = gradient;
 		// Fill rectangle with gradient
-		engine.bgContext.fillRect(10, 300, 100*this.heat/this.heatCapacity, 10);
+		this.bgCanvas.fillRect(10, 300, 100*this.heat/this.heatCapacity, 10);
 		
 		// shield bar
 		// Create gradient
-		gradient = engine.bgContext.createLinearGradient(560-(100*this.shield/this.shieldCapacity), 300, 560, 300);
+		gradient = this.bgCanvas.createLinearGradient(560-(100*this.shield/this.shieldCapacity), 300, 560, 300);
 		gradient.addColorStop(1, "#ff00ff");
 		gradient.addColorStop(0, "#00ffff");
-		engine.bgContext.fillStyle = gradient;
+		this.bgCanvas.fillStyle = gradient;
 		// Fill rectangle with gradient
-		engine.bgContext.fillRect(560-(100*this.shield/this.shieldCapacity), 300, 100*this.shield/this.shieldCapacity, 10);
+		this.bgCanvas.fillRect(560-(100*this.shield/this.shieldCapacity), 300, 100*this.shield/this.shieldCapacity, 10);
 	};
 	
 	this.manageFire = function() {
@@ -201,7 +215,7 @@ function Cursor() {
 				this.lastFire = Date.now();
 				var aim = {x: this.velocityH * this.mountedWeapon.baseProjectileSpeed,
 							y: this.velocityV * this.mountedWeapon.baseProjectileSpeed};
-				engine.projectilePool.spawn(this, this.mountedWeapon, aim);
+				//XXX engine.projectilePool.spawn(this, this.mountedWeapon, aim);
 				this.heat -= this.mountedWeapon.baseHeatCost;
 			}
 		}

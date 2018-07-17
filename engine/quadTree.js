@@ -2,7 +2,7 @@
  * QuadTree object.
  * The quadrant indexes are numbered as below:
  * 1|0
- * —+-
+ * ï¿½+-
  * 2|3
  */
 function QuadTree(boundBox, lvl) {
@@ -33,13 +33,13 @@ function QuadTree(boundBox, lvl) {
 	 */
 	this.getAllObjects = function() {
 		var returnedObjects = [];
-		
+
 		for (var i = 0; i < this.nodes.length; i++) {
 			returnedObjects = returnedObjects.concat(this.nodes[i].getAllObjects());
 		}
-		
+
 		returnedObjects = returnedObjects.concat(this.objects);
-		
+
 		return returnedObjects;
 	};
 
@@ -62,7 +62,7 @@ function QuadTree(boundBox, lvl) {
 
 		return returnedObjects;
 	};
-	
+
 	/*
 	 * Insert the object into the quadTree. If the tree
 	 * excedes the capacity, it will split and add all
@@ -147,7 +147,7 @@ function QuadTree(boundBox, lvl) {
 			var bottomQuadrant = (obj.positionV > horizontalMidpoint);
 			var bottomOverflow = (obj.positionV + obj.height > this.bounds.y + this.bounds.height);
 		}
-		
+
 		// Object is outside the box
 		if(leftOverflow) {
 			if(bottomQuadrant) {
@@ -175,7 +175,7 @@ function QuadTree(boundBox, lvl) {
 			}
 		}
 		// Object can fit completely within the left quadrants
-		else if (leftQuadrant) {		
+		else if (leftQuadrant) {
 			if (topQuadrant) {
 				index = 1;
 			}
@@ -230,7 +230,7 @@ function QuadTree(boundBox, lvl) {
 			height: subHeight
 		}, this.level+1);
 	};
-	
+
 	/*
 	 * Create 3 sibling leaf and one parent to create a bigger QuadTree
 	 */
@@ -238,7 +238,7 @@ function QuadTree(boundBox, lvl) {
 		var subWidth = this.bounds.width * 2;
 		var subHeight = this.bounds.height * 2;
 		var fatherNode = [];
-		
+
 		if(corner == -10) {
 			newBounds = {x: this.bounds.x, y: this.bounds.y-this.bounds.height, width:subWidth, height:subHeight};
 			fatherNode[0] = new QuadTree({x:this.bounds.x+this.bounds.width, y:this.bounds.y-this.bounds.height, width:this.bounds.width, height:this.bounds.height}, this.level);
@@ -264,7 +264,7 @@ function QuadTree(boundBox, lvl) {
 			fatherNode[2] = new QuadTree({x:this.bounds.x, y:this.bounds.y-this.bounds.height, width:this.bounds.width, height:this.bounds.height}, this.level);
 			fatherNode[3] = new QuadTree({x:this.bounds.x, y:this.bounds.y, width:this.bounds.width, height:this.bounds.height}, this.level);
 		}
-		
+
 		var newTree = new QuadTree(newBounds, this.level - 1);
 		newTree.maxLevels = this.maxLevels+1;
 		newTree.nodes = fatherNode;
@@ -272,11 +272,11 @@ function QuadTree(boundBox, lvl) {
 		this.objects = [];
 		engine.quadTree = newTree;
 	};
-	
+
 	this.print = function() {
 		var text = "[";
 		text = text + this.objects.length;
-		if(this.nodes && this.nodes.length) { 
+		if(this.nodes && this.nodes.length) {
 			text = text + "|";
 			for (var i = 0; i < this.nodes.length; i++) {
 				text = text + this.nodes[i].print() + "|";
@@ -324,7 +324,7 @@ function getBoxBoundingPoint(obj) {
 function findIntersectionPoint(ax, bx, ay, by, cx, dx, cy, dy) {
 	var delta = (ax-bx)*(cy-dy) - (ay-by)*(cx-dx);
 	var p,q,px,py;
-	if(delta != 0) {
+	if(delta == 0) {
 		// Parallel lines
 	} else {
 		p = ( (by-dy)*(cx-dx) - (bx-dx)*(cy-dy) ) / delta;

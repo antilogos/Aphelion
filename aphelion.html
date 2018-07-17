@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>APHELION</title>
+    <style>
+    </style>
+    <script>
+      var CANVAS_WIDTH = 600;
+      var CANVAS_HEIGHT = 400;
+      var GLOBAL_TEXT_SIZE = 15;
+    	// Translate distance of mouse in pixel to velocity : smooth velocity around 0.3,
+    	var POINT_TO_VELOCITY = 0.04;
+      var ENGINE_TIME_TO_PIXEL_CELERITY = 1 / 10000;
+      var viewportDiv = document.createElement('div');
+      viewportDiv.setAttribute("id", "viewport");
+      viewportDiv.setAttribute("className", "viewport");
+      viewportDiv.style.border = "5px solid #201513";
+      viewportDiv.style.width = "" + CANVAS_WIDTH + "px";
+      viewportDiv.style.height = "" + CANVAS_HEIGHT + "px";
+      viewportDiv.style.margin = "30px auto";
+      viewportDiv.style.position = "relative";
+      viewportDiv.style.overflow = "hidden";
+      viewportDiv.style.borderRadius = "5px";
+      viewportDiv.style.boxShadow = "0 0 5px 5px #503530";
+      viewportDiv.style.fontFamily = "Offside, sans-serif";
+      viewportDiv.style.userSelect = "none";
+      viewportDiv.style.cursor = "none";
+      var CANVAS_BACKGROUND = document.createElement('canvas');
+      CANVAS_BACKGROUND.setAttribute("id", "background");
+      CANVAS_BACKGROUND.style.zIndex = -40;
+      CANVAS_BACKGROUND.style.position = "absolute";
+      CANVAS_BACKGROUND.width = CANVAS_WIDTH;
+      CANVAS_BACKGROUND.height = CANVAS_HEIGHT;
+      var CANVAS_FOREGROUND = document.createElement('canvas');
+      CANVAS_FOREGROUND.setAttribute("id", "foreground");
+      CANVAS_FOREGROUND.style.zIndex = -30;
+      CANVAS_FOREGROUND.style.position = "absolute";
+      CANVAS_FOREGROUND.width = CANVAS_WIDTH;
+      CANVAS_FOREGROUND.height = CANVAS_HEIGHT;
+      var CANVAS_HEADUP = document.createElement('canvas');
+      CANVAS_HEADUP.setAttribute("id", "headup");
+      CANVAS_HEADUP.style.zIndex = -20;
+      CANVAS_HEADUP.style.position = "absolute";
+      CANVAS_HEADUP.width = CANVAS_WIDTH;
+      CANVAS_HEADUP.height = CANVAS_HEIGHT;
+      var CANVAS_MENU = document.createElement('canvas');
+      CANVAS_MENU.setAttribute("id", "menu");
+      CANVAS_MENU.style.zIndex = -10;
+      CANVAS_MENU.style.position = "absolute";
+      CANVAS_MENU.width =  CANVAS_WIDTH;
+      CANVAS_MENU.height = CANVAS_HEIGHT;
+      var checkInbound = function inbound(listener, rectangle) {
+        return listener.mouseX > rectangle.x && listener.mouseX < rectangle.x + rectangle.width
+          && listener.mouseY > rectangle.y && listener.mouseY < rectangle.y + rectangle.height;
+      }
+      function Menu() {
+        this.button = [];
+        this.draw = function draw() {
+          var context = CANVAS_MENU.getContext('2d');
+          context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          this.button.forEach(function draw(b) { b.draw() });
+          // Display cursor
+          context.beginPath();
+          context.strokeStyle = '#009900';
+          context.arc(inputListener.mouseX, inputListener.mouseY, 2, 0, Math.PI*2, true);
+          context.stroke();
+        }
+      }
+      function Button(label, x, y, width, height, action) {
+        this.label = label;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.action = action;
+        this.context = CANVAS_MENU.getContext('2d');
+        this.draw = function draw() {
+          if(inputListener.mouseHasClicked) {
+            if(checkInbound(inputListener, this)) {
+              var colour = '#FF9999';
+              this.ready = true;
+            } else {
+              var colour = '#9999FF';
+              this.ready = false;
+            }
+          } else if(checkInbound(inputListener, this)) {
+            var colour = '#99FF99';
+            if(this.ready) {
+              this.ready = false;
+              this.action();
+            }
+          } else {
+            var colour = '#9999FF';
+            this.ready = false;
+          }
+          this.context.beginPath();
+          this.context.lineWidth = 2;
+          this.context.strokeStyle = colour;
+          this.context.strokeRect(this.x, this.y, this.width, this.height);
+          this.context.textAlign = "center";
+          this.context.fillStyle = colour;
+          this.context.font = GLOBAL_TEXT_SIZE.toString() + "px Times New Roman";
+          this.context.fillText(this.label, this.x + this.width/2, this.y + this.height/2 + GLOBAL_TEXT_SIZE/2);
+        }
+        this.ready = false;
+      }
+      function InputListener() {
+        this.mouseX;
+        this.mouseY;
+        this.mouseHasClicked;
+        this.mouseHasRealeased;
+      }
+      var inputListener = new InputListener();
+      function init() {
+        document.getElementById("maindiv").addEventListener('mousemove', function(evt) {
+          inputListener.mouseX = evt.offsetX;
+          inputListener.mouseY = evt.offsetY;
+        }, true);
+        document.getElementById("maindiv").addEventListener('mouseup', function(evt) {
+          inputListener.mouseHasRealeased = new Date();
+          inputListener.mouseHasClicked = null;
+        }, true);
+        document.getElementById("maindiv").addEventListener('mousedown', function(evt) {
+          inputListener.mouseHasClicked = new Date();
+          inputListener.mouseHasRealeased = null;
+        }, true);
+        document.getElementById("maindiv").appendChild(viewportDiv);
+        viewportDiv.appendChild(CANVAS_BACKGROUND);
+        viewportDiv.appendChild(CANVAS_FOREGROUND);
+        viewportDiv.appendChild(CANVAS_HEADUP);
+        viewportDiv.appendChild(CANVAS_MENU);
+        animate();
+      }
+    </script>
+    <script>
+      function Cursor() {
+        // Information to display
+        this.position = { h: 0, v: 0};
+        this.inertia = {h: 0, v: 0};
+        this.lastseen = Date.now();
+        this.heat = 50;
+        this.shield = 50;
+
+        // Configuration of the Cursor
+        this.hull = {velocity: 100, shieldCapacity: 100, heatTolerance: 100, cargo: 100, absorption: 0, width: 3, height: 3, radius : 3};
+        this.engine = {thrust: 100, repair: 100, dissipation: 100, compartment: 100};
+        this.weapon = [];
+        this.module = [];
+
+        this.update = function update() {
+          // Actualize Time
+          var updateTime = Date.now() - this.lastseen;
+          this.lastseen = Date.now();
+
+          // Make the acceleration not suffer from framerate drop
+          var latencyExpectation = Math.min(updateTime/60,1);
+
+      		// Calculate differential movement
+      		// DEBUG test with raw velocity (1 px = 1 velocity)
+      		var diffX = ((inputListener.mouseX-CANVAS_WIDTH/2) * POINT_TO_VELOCITY) - this.inertia.h;
+      		var diffY = ((inputListener.mouseY-CANVAS_HEIGHT/2) * POINT_TO_VELOCITY) - this.inertia.v;
+      		var diffT = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
+      		var diffH = diffT==0 ? diffT : Math.min(diffT, this.engine.thrust) / diffT * diffX * latencyExpectation;
+      		var diffV = diffT==0 ? diffT : Math.min(diffT, this.engine.thrust) / diffT * diffY * latencyExpectation;
+
+          // Compute Velocity
+/*
+          if(this.notable / 2 & 1 && this.firing) {
+            // dreadnaugh mode does not change trajectory
+          } else {
+            if(this.notable / 16 & 1) {
+              // inertiacore does not suffer inertia
+              this.velocityH = (this.mouseX-this.mainCanvas.canvas.clientWidth / 2) * this.pointToVelocity * latencyExpectation;
+              this.velocityV = (this.mouseY-this.mainCanvas.canvas.clientHeight / 2) * this.pointToVelocity * latencyExpectation;
+            } else {
+            */
+              this.inertia.h += diffH;
+              this.inertia.v += diffV;
+              /*
+            }
+          }
+          */
+
+      		// Normalize Velocity
+      		var normal = Math.sqrt(Math.pow(this.inertia.h,2)+Math.pow(this.inertia.v,2));
+
+/*
+          if(normal > this.hull.velocity) {
+            if(this.notable / 4 & 1 && normal > this.hull.velocity) {
+      				// afterburner increase range of acceleration at the cost of heat
+      				if(this.heat > (normal/this.hull.velocity - 1) * this.heatCapacity / 50) {
+      					this.heat = this.heat - (normal/this.hull.velocity - 1) * this.heatCapacity / 50;
+      					this.inertia.h = this.hull.velocity*Math.min(normal/this.hull.velocity,1.5) / normal * this.inertia.h;
+      					this.inertia.v = this.hull.velocity*Math.min(normal/this.hull.velocity,1.5) / normal * this.inertia.v;
+      				} else {
+      					this.inertia.h = this.hull.velocity / normal * this.inertia.h;
+      					this.inertia.v = this.hull.velocity / normal * this.inertia.v;
+      				}
+      			} else {
+*/
+      				this.inertia.h = this.hull.velocity / normal * this.inertia.h;
+      				this.inertia.v = this.hull.velocity / normal * this.inertia.v;
+/*      			}
+      		  } else if(this.notable / 16 & 1) {
+      			// inertiacore is always at max speed
+      			if(normal != 0) {
+      				this.inertia.h = this.hull.velocity / normal * this.inertia.h;
+      				this.inertia.v = this.hull.velocity / normal * this.inertia.v;
+      			} else {
+      				this.inertia.h = 0;
+      				this.inertia.v = 0;
+      			}
+      		}
+            */
+
+          // Compute Displacement
+          this.position.h += (this.inertia.h * updateTime * ENGINE_TIME_TO_PIXEL_CELERITY);
+          this.position.v += (this.inertia.v * updateTime * ENGINE_TIME_TO_PIXEL_CELERITY);
+
+        }
+
+        this.hud = function draw() {
+          var canvadHud = CANVAS_HEADUP.getContext('2d');
+
+      		// heat bar
+          canvadHud.clearRect(10, 300, 100, 10);
+          canvadHud.strokeStyle = "#000000";
+          canvadHud.strokeRect(10, 300, 100, 10);
+      		// Create gradient
+      		gradient = canvadHud.createLinearGradient(10, 0, 10+100*this.heat/this.hull.heatTolerance, 0);
+      		gradient.addColorStop(0, "#ff0000");
+      		gradient.addColorStop(1, "#ffff00");
+      		canvadHud.fillStyle = gradient;
+      		// Fill rectangle with gradient
+      		canvadHud.fillRect(10, 300, 100*this.heat/this.hull.heatTolerance, 10);
+
+      		// shield bar
+          canvadHud.clearRect(460, 300, 100, 10);
+          canvadHud.strokeStyle = "#000000";
+          canvadHud.strokeRect(460, 300, 100, 10);
+      		// Create gradient
+      		gradient = canvadHud.createLinearGradient(560-(100*this.shield/this.hull.shieldCapacity), 300, 560, 300);
+      		gradient.addColorStop(1, "#ff00ff");
+      		gradient.addColorStop(0, "#00ffff");
+      		canvadHud.fillStyle = gradient;
+      		// Fill rectangle with gradient
+      		canvadHud.fillRect(560-(100*this.shield/this.hull.shieldCapacity), 300, 100*this.shield/this.hull.shieldCapacity, 10);
+
+          // Telemeter
+          canvadHud.clearRect(10, 30, 100, 20);
+          canvadHud.strokeStyle = "#000000";
+          canvadHud.strokeRect(10, 30, 100, 20);
+          canvadHud.textAlign = "center";
+          canvadHud.fillStyle = "#000000";
+          canvadHud.font = GLOBAL_TEXT_SIZE.toString() + "px Times New Roman";
+          canvadHud.fillText(this.position.h.toFixed(2) + ":" + this.position.v.toFixed(2), 60, 30 + GLOBAL_TEXT_SIZE);
+
+          // Tachymeter
+          canvadHud.clearRect(460, 30, 100, 20);
+          canvadHud.strokeStyle = "#000000";
+          canvadHud.strokeRect(460, 30, 100, 20);
+          canvadHud.textAlign = "center";
+          canvadHud.fillStyle = "#000000";
+          canvadHud.font = GLOBAL_TEXT_SIZE.toString() + "px Times New Roman";
+          canvadHud.fillText(this.inertia.h.toFixed(2) + ":" + this.inertia.v.toFixed(2), 510, 30 + GLOBAL_TEXT_SIZE);
+        }
+
+        this.draw = function draw() {
+          // Snapeshot position
+          var snapeshot = {h: this.position.h, v: this.position.v};
+
+          // Run logic
+          this.update();
+
+          // Clear cusor at center
+      		var canvasFg = CANVAS_FOREGROUND.getContext('2d');
+          canvasFg.clearRect( (CANVAS_WIDTH - this.hull.width - 30)/2, (CANVAS_HEIGHT - this.hull.height - 30)/2, this.hull.width + 30, this.hull.height + 30);
+
+          // Redraw cursor at center
+      		canvasFg.beginPath();
+      		canvasFg.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, this.hull.radius, 0, 2 * Math.PI, false);
+      		canvasFg.lineWidth = 1;
+      		canvasFg.strokeStyle = '#330000';
+      		canvasFg.stroke();
+
+      		// emergencydrive effect
+
+          this.hud();
+        }
+      }
+      var cursor = new Cursor();
+      function MainLoop() {
+        this.button = [];
+        this.draw = function draw() {
+          CANVAS_MENU.getContext('2d').clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          var context = CANVAS_BACKGROUND.getContext('2d');
+          context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          this.button.forEach(function draw(b) { b.draw() });
+
+          // Display mouse pointer
+          context.beginPath();
+          context.strokeStyle = '#009900';
+          context.arc(inputListener.mouseX, inputListener.mouseY, 2, 0, Math.PI*2, true);
+          context.stroke();
+
+          // Manage Cursor
+          cursor.draw();
+        }
+      }
+      var menu4 = new MainLoop();
+    </script>
+    <script>
+      var screenStack = [];
+
+      var menu1 = new Menu();
+      var menu2 = new Menu();
+      var menu3 = new Menu();
+      var button_1_1 = new Button("To Menu 2", 50, 50, 100, 30, function toMenu2() { screenStack.unshift(menu2); });
+      menu1.button.push(button_1_1);
+      var button_1_2 = new Button("To Menu 3", 450, 50, 100, 30, function toMenu3() { screenStack.unshift(menu3); });
+      menu1.button.push(button_1_2);
+      var button_1_3 = new Button("To Menu 4", 250, 250, 100, 30, function toMenu3() { screenStack.unshift(menu4); });
+      menu1.button.push(button_1_3);
+      var button_2_back = new Button("To Menu 1", 50, 50, 100, 30, function toMenu2() { screenStack.shift(); });
+      menu2.button.push(button_2_back);
+      var button_3_back = new Button("To Menu 1", 450, 50, 100, 30, function toMenu2() { screenStack.shift(); });
+      menu3.button.push(button_3_back);
+      screenStack.unshift(menu1);
+
+      function animate() {
+
+       screenStack[0].draw();
+     	 requestAnimFrame( animate );
+     }
+     /**
+      * requestAnim shim layer by Paul Irish
+      * Finds the first API that works to optimize the animation loop,
+      * otherwise defaults to setTimeout().
+      */
+     window.requestAnimFrame = (function(){
+     	return  window.requestAnimationFrame   ||
+     			window.webkitRequestAnimationFrame ||
+     			window.mozRequestAnimationFrame    ||
+     			window.oRequestAnimationFrame      ||
+     			window.msRequestAnimationFrame     ||
+     			function(/* function */ callback, /* DOMElement */ element){
+     				window.setTimeout(callback, 1000 / 60);
+     			};
+     })();
+    </script>
+  </head>
+    <body onload="init()">
+     <div id="maindiv" style="overflow: auto">
+     </div>
+  </body>
+</html>

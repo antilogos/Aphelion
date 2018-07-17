@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaSbtSettings">
+    <option name="vmParameters" value="-XX:MaxPermSize=384M -Dhttp.proxyHost='webproxy-utilisateurs-1.intra-coliposte.fr' -Dhttp.proxyPort='3129' -Dhttp.proxyUser='vdoquang' -Dhttp.proxyPassword='coliposte' -Dhttps.proxyHost='webproxy-utilisateurs-1.intra-coliposte.fr' -Dhttps.proxyPort='3129' -Dhttps.proxyUser='vdoquang' -Dhttps.proxyPassword='coliposte' -Dhttp.nonProxyHosts='localhost|127.0.0.1|web01.telintrans.fr|*.tlt|*.colis.intra.laposte.fr|*.lxc|192.*|10.*|*.intra-coliposte.fr|*.cloud.alt'" />
+  </component>
+</project>

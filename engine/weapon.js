@@ -1,4 +1,4 @@
-// ////////////////////////////////////////// WEAPONERY ///////////////////////////////////////////
+weapon// ////////////////////////////////////////// WEAPONERY ///////////////////////////////////////////
 
 function weapon() {
 	// Basic statistics
@@ -104,7 +104,7 @@ function weapon() {
 var HULL_TRANSPORT = {name: "Transport", code: "TN", width: 2, height: 4, radius: 2, collisionType: COLLISION_TYPE_BOX, terminalVelocity: 40, shieldCapacity:40, heatCapacity:25, armour:5, mainModule:4, subModule: 2};
 var HULL_CRUISER = {name: "Croiseur", code: "CR", width: 15, height: 12, radius: 8, collisionType: COLLISION_TYPE_BOX, terminalVelocity:25 , shieldCapacity:125, heatCapacity:50, armour:15, mainModule:5, subModule: 4};
 var HULL_ASSAULT = {name: "Assaut", code: "AT", width: 20, height: 6, radius: 10, collisionType: COLLISION_TYPE_BOX, terminalVelocity:20 , shieldCapacity:150, heatCapacity:200, armour:5, mainModule:6, subModule: 6};
-var HULL_SCOUT = {name: "Éclaireur", code: "SC", width: 6, height: 6, radius: 3, collisionType: COLLISION_TYPE_SPHERE, terminalVelocity:30 , shieldCapacity:40, heatCapacity:40, armour:5, mainModule:4, subModule: 6};
+var HULL_SCOUT = {name: "Ã‰claireur", code: "SC", width: 6, height: 6, radius: 3, collisionType: COLLISION_TYPE_SPHERE, terminalVelocity:30 , shieldCapacity:40, heatCapacity:40, armour:5, mainModule:4, subModule: 6};
 var HULL_WHISP = {name: "Furtif", code: "WP", width: 2, height: 2, radius: 1, collisionType: COLLISION_TYPE_SPHERE, terminalVelocity:50 , shieldCapacity:25, heatCapacity:100, armour:0, mainModule:4, subModule: 4};
 var HULL_DESTROYER = {name: "Destroyer", code: "DT", width: 10, height: 10, radius: 5, collisionType: COLLISION_TYPE_SPHERE, terminalVelocity:20 , shieldCapacity:100, heatCapacity:125, armour:10, mainModule:6, subModule: 2};
 var HULL_BOMBER = {name: "Cuirassier", code: "BB", width: 30, height: 14, radius: 15, collisionType: COLLISION_TYPE_BOX, terminalVelocity:12 , shieldCapacity:200, heatCapacity:100, armour:20, mainModule:6, subModule: 4};

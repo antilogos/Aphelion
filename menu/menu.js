@@ -24,7 +24,9 @@ var researchMenu = null;
 var hangarMenu = null;
 var missionMenu = null;
 var pauseMenu = null;
+var fieldMenu = null;
 
+var engine = null;
 
 function initMenu() {
   console.log("initMenu...");
@@ -38,6 +40,7 @@ function initMenu() {
   hangarMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Hangar");
   missionMenu = new MenuObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Missions");
   pauseMenu = new MenuObject(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 4, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, document.getElementById('menu'), "Pause");
+  fieldMenu = new EngineObject(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, document.getElementById('menu'), "Aphelion");
 
   mainMenu.items.unshift(new ButtonObject(20,20,50,50,mainMenu.canvas,"Hall", function() { openMenu(hallMenu); } ));
   mainMenu.items.unshift(new ButtonObject(20,70,50,50,mainMenu.canvas,"*Save", function() { openMenu(optionMenu); } ));
@@ -54,8 +57,18 @@ function initMenu() {
   hallMenu.items.unshift(new ButtonObject(220,220,70,50,mainMenu.canvas,"*Load", function() { openMenu(-1); } ));
   hallMenu.items.unshift(new ButtonObject(20,270,300,50,mainMenu.canvas,"Back", function() { openMenu(-1); } ));
 
-  missionMenu.items.unshift(new ButtonObject(20,20,300,50,mainMenu.canvas,"Start", function() { openMenu(-1); } ));
+  //settingMenu
+
+  //researchMenu
+
+  //hangarMenu
+
+  missionMenu.items.unshift(new ButtonObject(20,20,300,50,mainMenu.canvas,"*Start", function() { openMenu(fieldMenu);
+    fieldMenu.init();
+  } ));
   missionMenu.items.unshift(new ButtonObject(20,270,300,50,mainMenu.canvas,"Back", function() { openMenu(-1); } ));
+
+  //pauseMenu
 
   // Open the main menu
   openMenu(mainMenu);
