@@ -7,8 +7,12 @@
     </style>
     <script src="v2/libMenu.js" type="text/javascript"></script>
     <script src="v2/libEngine.js" type="text/javascript"></script>
+    <script src="v2/libWeapon.js" type="text/javascript"></script>
+    <script src="v2/libProjectile.js" type="text/javascript"></script>
     <script src="v2/libCursor.js" type="text/javascript"></script>
     <script src="v2/libBackground.js" type="text/javascript"></script>
+    <script src="v2/libIa.js" type="text/javascript"></script>
+    <script src="v2/libPasserby.js" type="text/javascript"></script>
     <script>
       function InputListener() {
         this.mouseX;
@@ -50,6 +54,8 @@
           // Manage Cursor
           cursor.draw();
           background.draw();
+          passerbyFactory.draw();
+          projectileFactory.draw();
         }
       }
       var menu4 = new MainLoop();
