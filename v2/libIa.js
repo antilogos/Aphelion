@@ -23,7 +23,7 @@ function ChasingBehaviour(passerby) {
   }
 }
 
-function SteeringBehaviour(passerby) {
+function OrbitingBehaviour(passerby) {
   this.passerby = passerby;
   this.clockwise = Math.floor(Math.random() * 2) == 0;
   this.move = function move() {
@@ -48,7 +48,7 @@ function SteeringBehaviour(passerby) {
 
 function FleeingBehaviour(passerby) {
   this.passerby = passerby;
-  
+
   this.move = function move() {
     // Trajectory correction
     var diffX = this.passerby.hitbox.h - passerby.target.position.h;
@@ -59,5 +59,68 @@ function FleeingBehaviour(passerby) {
     // TODO smooth turn
     this.passerby.velocity.h = diffH;
     this.passerby.velocity.v = diffV;
+  }
+}
+
+
+function FireAtWill(passerby) {
+  this.passerby = passerby;
+
+  this.move = function move() {
+    // Always fire when ready
+    if(this.passerby.last.seen - this.passerby.last.fire > 1000/this.passerby.weapon.fireRate) {
+      // Define projectile state
+      var initPos = {h: this.passerby.hitbox.h, v: this.passerby.hitbox.v};
+      var initVelN = Math.sqrt(Math.pow(this.passerby.target.position.h - this.passerby.hitbox.h,2) + Math.pow(this.passerby.target.position.v - this.passerby.hitbox.v,2));
+      var initVel = {h: (this.passerby.target.position.h - this.passerby.hitbox.h) / initVelN * this.passerby.weapon.velocity, v: (this.passerby.target.position.v - this.passerby.hitbox.v) / initVelN * this.passerby.weapon.velocity}
+      // Confirm creation of projectile
+      projectileFactory.spawn(initPos, initVel, this.weapon);
+      // Update firing state
+      this.passerby.last.fire = Date.now();
+    }
+  }
+}
+
+
+function ComplexeBehaviourHunter(passerby) {
+  this.passerby = passerby;
+  this.chasingBehaviour = new ChasingBehaviour(passerby);
+  this.fireAtWill = new FireAtWill(passerby);
+  this.fleeingBehaviour = new FleeingBehaviour(passerby);
+
+  this.move = function move() {
+    // Determine behaviour to have dependending on the distance to target
+    var distance = Math.sqrt(Math.pow(this.passerby.hitbox.h - this.passerby.target.position.h,2) + Math.pow(this.passerby.hitbox.v - this.passerby.target.position.v,2));
+    if(distance < PASSERBY_SPAWN_CIRCLE) {
+      this.fleeingBehaviour.move();
+    } else {
+      this.chasingBehaviour.move();
+    }
+    this.fireAtWill.move();
+  }
+}
+
+function ComplexeBehaviourHarrier(passerby) {
+  this.passerby = passerby;
+  this.chasingBehaviour = new ChasingBehaviour(passerby);
+  this.fireAtWill = new FireAtWill(passerby);
+  this.fleeingBehaviour = new FleeingBehaviour(passerby);
+  this.orbitingBehaviour = new OrbitingBehaviour(passerby);
+  this.inConfortZone = false;
+
+  this.move = function move() {
+    // Determine behaviour to have dependending on the distance to target
+    var distance = Math.sqrt(Math.pow(this.passerby.hitbox.h - this.passerby.target.position.h,2) + Math.pow(this.passerby.hitbox.v - this.passerby.target.position.v,2));
+    if(distance < PASSERBY_SPAWN_CIRCLE * .65) {
+      this.fleeingBehaviour.move();
+      this.inConfortZone = false;
+    } else if(distance > PASSERBY_SPAWN_CIRCLE * 1.35) {
+      this.chasingBehaviour.move();
+      this.inConfortZone = false;
+    } else {
+      this.orbitingBehaviour.move();
+      this.inConfortZone = true;
+    }
+    this.fireAtWill.move();
   }
 }

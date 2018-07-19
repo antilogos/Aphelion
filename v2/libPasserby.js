@@ -3,12 +3,11 @@ PASSERBY_SPAWN_CIRCLE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.45;
  *
  */
 function Passerby() {
-  this.lastseen = Date.now();
-  this.updateTime = 0;
+  this.last = {seen: Date.now(), fire: Date.now(), update: 0};
   this.behaviour = new ChasingBehaviour(this);
   this.hitbox = {h: 0, v: 0, width: 2, height: 2, radius: 2};
   this.velocity = {h: 0, v: 0, n:25};
-  this.weapon;
+  this.weapon = new Weapon();
   this.hull = {alive: true, shield: 100};
   this.target = cursor;
 
@@ -18,14 +17,14 @@ function Passerby() {
       && this.hitbox.h - cursor.position.h < CANVAS_WIDTH + this.hitbox.width
       && this.hitbox.v - cursor.position.v > - CANVAS_HEIGHT - this.hitbox.height
       && this.hitbox.v - cursor.position.v < CANVAS_HEIGHT + this.hitbox.height) {
-      this.updateTime = Date.now() - this.lastseen;
-      this.lastseen += this.updateTime;
+      this.last.update = Date.now() - this.last.seen;
+      this.last.seen += this.last.update;
 
       // Manage movement
       if(this.behaviour.move) this.behaviour.move();
 
-      this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
-      this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
+      this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
+      this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
       // Manage firing
 
 
@@ -34,10 +33,10 @@ function Passerby() {
       canvasFg.beginPath();
       canvasFg.arc(this.hitbox.h - cursor.position.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.position.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
       canvasFg.lineWidth = 1;
-      if (this.behaviour instanceof ChasingBehaviour) {
-        canvasFg.strokeStyle = '#EE3333';
-      } else if (this.behaviour instanceof SteeringBehaviour) {
-        canvasFg.strokeStyle = '#BB9900';
+      if (this.behaviour instanceof ComplexeBehaviourHarrier) {
+        canvasFg.strokeStyle = '#6633BB';
+      } else if (this.behaviour instanceof ComplexeBehaviourHunter) {
+        canvasFg.strokeStyle = '#66BB33';
       } else {
         canvasFg.strokeStyle = '#EE33EE';
       }
@@ -65,9 +64,9 @@ function PasserbyFactory() {
     if(randomBehaviour == 2) {
       passerby.behaviour = new ChasingBehaviour(passerby);
     } else if(randomBehaviour == 1) {
-      passerby.behaviour = new SteeringBehaviour(passerby);
+      passerby.behaviour = new ComplexeBehaviourHarrier(passerby);
     } else {
-      passerby.behaviour = new FleeingBehaviour(passerby);
+      passerby.behaviour = new ComplexeBehaviourHunter(passerby);
     }
   }
 

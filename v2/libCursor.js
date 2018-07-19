@@ -84,12 +84,20 @@ function Cursor() {
       if(this.last.seen - this.last.fire > 1000/this.weapon[0].fireRate) {
         // check if overheating
         if(this.heat > this.weapon[0].heat) {
-          projectileFactory.spawn();
+          // Define projectile state
+          var initPos = {h: this.position.h, v: this.position.v};
+          var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
+          var mouseVelN = Math.sqrt(Math.pow(this.inertia.h,2)+Math.pow(this.inertia.v,2));
+          var initVel = {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
+          // Confirm creation of projectile
+          projectileFactory.spawn(initPos, initVel, this.weapon[0]);
+          // Update firing state
           this.heat -= this.weapon[0].heat;
           this.last.fire = Date.now();
         }
       }
     }
+    // Heat dissipation
 		if(this.heat < this.hull.heatTolerance) {
 			this.heat = Math.min(this.heat + this.engine.dissipation * this.last.update * HEAT_COOLDOWN_RATIO, this.hull.heatTolerance);
 		}

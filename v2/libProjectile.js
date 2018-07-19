@@ -32,13 +32,7 @@ function Projectile(weapon) {
      canvasFg.beginPath();
      canvasFg.arc(this.hitbox.h - cursor.position.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.position.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
      canvasFg.lineWidth = 1;
-     if (this.behaviour instanceof ChasingBehaviour) {
-       canvasFg.strokeStyle = '#000033';
-     } else if (this.behaviour instanceof SteeringBehaviour) {
-       canvasFg.strokeStyle = '#003300';
-     } else {
-       canvasFg.strokeStyle = '#330000';
-     }
+     canvasFg.strokeStyle = '#330000';
 
      canvasFg.stroke();
    }
@@ -49,16 +43,17 @@ function ProjectileFactory() {
 
  this.projectileList = [];
 
- this.spawn = function() {
+ this.spawn = function(initPos, initVel, initWep) {
    var projectile = new Projectile();
    this.projectileList.push(projectile);
-   // Pick a location on the spawn circle
-   var random = Math.random() * Math.PI * 2;
-   projectile.hitbox.h = cursor.position.h + (Math.cos(random) * PASSERBY_SPAWN_CIRCLE);
-   projectile.hitbox.v = cursor.position.v + (Math.sin(random) * PASSERBY_SPAWN_CIRCLE);
-   // Speed inversed and lowered to move toward center
-   projectile.velocity.h = Math.cos(random) * -1 * projectile.velocity.n;
-   projectile.velocity.v = Math.sin(random) * -1 * projectile.velocity.n;
+   // Initial launch
+   projectile.hitbox.h = initPos.h;
+   projectile.hitbox.v = initPos.v;
+   // Initial inertia
+   projectile.velocity.h = initVel.h;
+   projectile.velocity.v = initVel.v;
+   projectile.velocity.n = Math.sqrt(Math.pow(initVel.h,2)+Math.pow(initVel.v,2));
+   // Initial weapon definition
    // Behaviour of projectile
    projectile.behaviour = new DefaultBehaviour(projectile);
  }
