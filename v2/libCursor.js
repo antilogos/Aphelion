@@ -12,8 +12,8 @@ var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
  */
 function Cursor() {
   // Information to display
-  this.position = { h: 500, v: 100};
-  this.inertia = {h: 0, v: 0};
+  this.hitbox = { h: 500, v: 100, width: 3, height: 3};
+  this.velocity = {h: 0, v: 0, n: 0};
   this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0};
   this.heat = 0;
   this.shield = 0;
@@ -25,6 +25,11 @@ function Cursor() {
   this.module = [];
 
   this.update = function update() {
+    // Snapeshot all last info
+    this.last.update = Date.now() - this.last.seen;
+    this.last.seen = Date.now();
+    this.last.h = this.hitbox.h;
+    this.last.v = this.hitbox.v;
     // Make the acceleration not suffer from framerate drop, = Frequency of refresh
     var latencyExpectation = Math.min(this.last.update/60,1);
     // Time for the thrust to make a complete turn back, = Thrust over time over timeToTurn
@@ -51,11 +56,11 @@ function Cursor() {
     // inertiacore does not suffer inertia
 
     // Change inertia, altering the factor
-    this.inertia.h += diffH * thrustingTime;
-    this.inertia.v += diffV * thrustingTime;
+    this.velocity.h += diffH * thrustingTime;
+    this.velocity.v += diffV * thrustingTime;
 
     // Normalize inertia if go out of bound
-		var speedN = Math.sqrt(Math.pow(this.inertia.h,2)+Math.pow(this.inertia.v,2));
+		var speedN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
 		if(speedN > this.hull.velocity) {
       // afterburner increase range of acceleration at the cost of heat
       /*
@@ -68,15 +73,15 @@ function Cursor() {
         this.inertia.v = this.hull.velocity / normal * this.inertia.v;
       }
       */
-			this.inertia.h = this.hull.velocity / speedN * this.inertia.h;
-			this.inertia.v = this.hull.velocity / speedN * this.inertia.v;
+			this.velocity.h = this.hull.velocity / speedN * this.velocity.h;
+			this.velocity.v = this.hull.velocity / speedN * this.velocity.v;
     } else {
       // inertiacore is always at max speed
     }
 
     // Apply Movement
-    this.position.h += (this.inertia.h * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
-    this.position.v += (this.inertia.v * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
+    this.hitbox.h += (this.velocity.h * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
+    this.hitbox.v += (this.velocity.v * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
 
 		// Firing
     if(inputListener.mouseHasClicked != null) {
@@ -85,9 +90,9 @@ function Cursor() {
         // check if overheating
         if(this.heat > this.weapon[0].heat) {
           // Define projectile state
-          var initPos = {h: this.position.h, v: this.position.v};
+          var initPos = {h: this.hitbox.h, v: this.hitbox.v};
           var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
-          var mouseVelN = Math.sqrt(Math.pow(this.inertia.h,2)+Math.pow(this.inertia.v,2));
+          var mouseVelN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
           var initVel = {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
           // Confirm creation of projectile
           projectileFactory.spawn(initPos, initVel, this.weapon[0]);
@@ -146,7 +151,7 @@ function Cursor() {
     canvadHud.textAlign = "center";
     canvadHud.fillStyle = "#000000";
     canvadHud.font = GLOBAL_TEXT_SIZE.toString() + "px Times New Roman";
-    canvadHud.fillText(this.position.h.toFixed(0) + ":" + this.position.v.toFixed(0), 60, 30 + GLOBAL_TEXT_SIZE);
+    canvadHud.fillText(this.hitbox.h.toFixed(0) + ":" + this.hitbox.v.toFixed(0), 60, 30 + GLOBAL_TEXT_SIZE);
 
     // Tachymeter
     canvadHud.clearRect(460, 30, 100, 20);
@@ -155,19 +160,10 @@ function Cursor() {
     canvadHud.textAlign = "center";
     canvadHud.fillStyle = "#000000";
     canvadHud.font = GLOBAL_TEXT_SIZE.toString() + "px Times New Roman";
-    canvadHud.fillText(this.inertia.h.toFixed(2) + ":" + this.inertia.v.toFixed(2), 510, 30 + GLOBAL_TEXT_SIZE);
+    canvadHud.fillText(this.velocity.h.toFixed(2) + ":" + this.velocity.v.toFixed(2), 510, 30 + GLOBAL_TEXT_SIZE);
   }
 
   this.draw = function draw() {
-    // Snapeshot all last info
-    this.last.update = Date.now() - this.last.seen;
-    this.last.seen = Date.now();
-    this.last.h = this.position.h;
-    this.last.v = this.position.v;
-
-    // Run logic
-    this.update();
-
     // Clear cusor at center
     var canvadHud = CANVAS_HEADUP.getContext('2d');
     canvadHud.clearRect( (CANVAS_WIDTH - this.hull.width - 30)/2, (CANVAS_HEIGHT - this.hull.height - 30)/2, this.hull.width + 30, this.hull.height + 30);

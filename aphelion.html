@@ -51,11 +51,19 @@
           CANVAS_MENU.getContext('2d').clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
           this.button.forEach(function draw(b) { b.draw() });
 
-          // Manage Cursor
+          // Manage Logic
+          cursor.update();
+          background.update();
+          passerbyFactory.update();
+          projectileFactory.update();
+          quadTree.update();
+          // Manage Display
           cursor.draw();
           background.draw();
           passerbyFactory.draw();
           projectileFactory.draw();
+          //DEBUG
+          quadTree.draw();
         }
       }
       var menu4 = new MainLoop();

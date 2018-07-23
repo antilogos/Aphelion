@@ -313,6 +313,28 @@ function getBoxBoundingPoint(obj) {
 				y: (-obj.width / 2 * angle.sin + obj.height / 2 * angle.cos ) * Math.abs(obj.velocityH ) / obj.velocityH + obj.positionV } ];
 }
 
+/*
+ * Create a bounding box of 4 points rectangle that include the object and its next image
+ */
+function buildBoundBox(hitbox, velocity) {
+	// Step 1: create 4 points from center and width/height
+	var pne = {x: hitbox.h + hitbox.width, y: hitbox.v - hitbox.height};
+	var pnw = {x: hitbox.h - hitbox.width, y: hitbox.v - hitbox.height};
+	var pse = {x: hitbox.h + hitbox.width, y: hitbox.v + hitbox.height};
+	var psw = {x: hitbox.h - hitbox.width, y: hitbox.v + hitbox.height};
+	// Step 2: create 4 additionnal points that are the future of the 4 points
+	var fne = {x: hitbox.h + hitbox.width + velocity.h, y: hitbox.v - hitbox.height + velocity.v};
+	var fnw = {x: hitbox.h - hitbox.width + velocity.h, y: hitbox.v - hitbox.height + velocity.v};
+	var fse = {x: hitbox.h + hitbox.width + velocity.h, y: hitbox.v + hitbox.height + velocity.v};
+	var fsw = {x: hitbox.h - hitbox.width + velocity.h, y: hitbox.v + hitbox.height + velocity.v};
+	// Step 3: make a normal vector from the velocity at the center of the path
+	var velocityA = {x: hitbox.h, y: hitbox.v + velocity.v};
+	var velocityB = {x: hitbox.h, y: hitbox.v + velocity.v};
+	var normalA = {x: hitbox.h + velocity.h /2 + velocity.v /2, y: hitbox.v + velocity.v /2 - velocity.h /2};
+	var normalB = {x: hitbox.h + velocity.h /2 - velocity.v /2, y: hitbox.v + velocity.v /2 + velocity.h /2};
+	// Step 4: found each intersection between the couple of past-future corner and the normal of velocity
+}
+
 /**
  * return the intersection of two oriented segment [A,B] and [C,D]
  * delta: 0 if parallel lines

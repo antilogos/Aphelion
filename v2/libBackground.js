@@ -8,13 +8,17 @@ function Background() {
   this.width = CANVAS_WIDTH;
   this.height = CANVAS_HEIGHT;
 
+  this.update = function update() {
+    // Nothing to do for now
+  }
+
   this.draw = function draw() {
     // Get the scrolling positive step for grid calculation
-    var cornerX = (Math.floor(cursor.position.h - CANVAS_WIDTH/2)%100+100)%100;
-    var cornerY = (Math.floor(cursor.position.v - CANVAS_HEIGHT/2)%100+100)%100;
+    var cornerX = (Math.floor(cursor.hitbox.h - CANVAS_WIDTH/2)%100+100)%100;
+    var cornerY = (Math.floor(cursor.hitbox.v - CANVAS_HEIGHT/2)%100+100)%100;
     // Deduce corners relative positions
-    var relX = Math.floor(cursor.position.h - CANVAS_WIDTH/2);
-    var relY = Math.floor(cursor.position.v - CANVAS_HEIGHT/2);
+    var relX = Math.floor(cursor.hitbox.h - CANVAS_WIDTH/2);
+    var relY = Math.floor(cursor.hitbox.v - CANVAS_HEIGHT/2);
 
     this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 

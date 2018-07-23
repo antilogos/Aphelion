@@ -11,27 +11,33 @@ function Passerby() {
   this.hull = {alive: true, shield: 100};
   this.target = cursor;
 
-  this.draw = function draw() {
+  this.update = function update() {
     // Only care about in screen passerby
-    if(this.hitbox.h - cursor.position.h > - CANVAS_WIDTH - this.hitbox.width
-      && this.hitbox.h - cursor.position.h < CANVAS_WIDTH + this.hitbox.width
-      && this.hitbox.v - cursor.position.v > - CANVAS_HEIGHT - this.hitbox.height
-      && this.hitbox.v - cursor.position.v < CANVAS_HEIGHT + this.hitbox.height) {
+    if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
+      && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
+      && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
+      && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
       this.last.update = Date.now() - this.last.seen;
       this.last.seen += this.last.update;
 
-      // Manage movement
+      // Manage movement & firing
       if(this.behaviour.move) this.behaviour.move();
 
       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
-      // Manage firing
+    }
+  }
 
-
+  this.draw = function draw() {
+    // Only care about in screen passerby
+    if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
+      && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
+      && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
+      && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
       // Draw
       var canvasFg = CANVAS_FOREGROUND.getContext('2d');
       canvasFg.beginPath();
-      canvasFg.arc(this.hitbox.h - cursor.position.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.position.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
+      canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
       canvasFg.lineWidth = 1;
       if (this.behaviour instanceof ComplexeBehaviourHarrier) {
         canvasFg.strokeStyle = '#6633BB';
@@ -55,8 +61,8 @@ function PasserbyFactory() {
     this.passerbyList.push(passerby);
     // Pick a location on the spawn circle
     var random = Math.random() * Math.PI * 2;
-    passerby.hitbox.h = cursor.position.h + (Math.cos(random) * PASSERBY_SPAWN_CIRCLE);
-    passerby.hitbox.v = cursor.position.v + (Math.sin(random) * PASSERBY_SPAWN_CIRCLE);
+    passerby.hitbox.h = cursor.hitbox.h + (Math.cos(random) * PASSERBY_SPAWN_CIRCLE);
+    passerby.hitbox.v = cursor.hitbox.v + (Math.sin(random) * PASSERBY_SPAWN_CIRCLE);
     // Speed inversed and lowered to move toward center
     passerby.velocity.h = Math.cos(random) * -1 * passerby.velocity.n;
     passerby.velocity.v = Math.sin(random) * -1 * passerby.velocity.n;
@@ -68,6 +74,11 @@ function PasserbyFactory() {
     } else {
       passerby.behaviour = new ComplexeBehaviourHunter(passerby);
     }
+  }
+
+  this.update = function update() {
+    this.passerbyList.forEach(function update(p) { p.update() });
+    this.passerbyList = this.passerbyList.filter( function stillAlive(p) { return p.hull.alive; });
   }
 
   this.draw = function draw() {
