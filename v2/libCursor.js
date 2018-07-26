@@ -12,7 +12,7 @@ var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
  */
 function Cursor() {
   // Information to display
-  this.hitbox = { h: 500, v: 100, width: 3, height: 3};
+  this.hitbox = { h: 0, v: 0, width: 20, height: 20, radius: 10, type: COLLISION_MASK_CURSOR};
   this.velocity = {h: 0, v: 0, n: 0};
   this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0};
   this.heat = 0;
@@ -21,7 +21,7 @@ function Cursor() {
   // Configuration of the Cursor
   this.hull = {velocity: 100, shieldCapacity: 100, heatTolerance: 100, cargo: 100, absorption: 0, width: 3, height: 3, radius : 3};
   this.engine = {thrust: 100, repair: 100, dissipation: 100, compartment: 100};
-  this.weapon = [new Weapon()];
+  this.weapon = [new WeaponDebug()];
   this.module = [];
 
   this.update = function update() {
@@ -90,12 +90,11 @@ function Cursor() {
         // check if overheating
         if(this.heat > this.weapon[0].heat) {
           // Define projectile state
-          var initPos = {h: this.hitbox.h, v: this.hitbox.v};
           var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
           var mouseVelN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
           var initVel = {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
           // Confirm creation of projectile
-          projectileFactory.spawn(initPos, initVel, this.weapon[0]);
+          projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
           // Update firing state
           this.heat -= this.weapon[0].heat;
           this.last.fire = Date.now();
@@ -166,11 +165,11 @@ function Cursor() {
   this.draw = function draw() {
     // Clear cusor at center
     var canvadHud = CANVAS_HEADUP.getContext('2d');
-    canvadHud.clearRect( (CANVAS_WIDTH - this.hull.width - 30)/2, (CANVAS_HEIGHT - this.hull.height - 30)/2, this.hull.width + 30, this.hull.height + 30);
+    canvadHud.clearRect( (CANVAS_WIDTH - this.hitbox.width - 30)/2, (CANVAS_HEIGHT - this.hitbox.height - 30)/2, this.hitbox.width + 30, this.hitbox.height + 30);
 
     // Redraw cursor at center
     canvadHud.beginPath();
-    canvadHud.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, this.hull.radius, 0, 2 * Math.PI, false);
+    canvadHud.arc(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
     canvadHud.lineWidth = 1;
     canvadHud.strokeStyle = '#330000';
     canvadHud.stroke();
@@ -178,5 +177,10 @@ function Cursor() {
     // emergencydrive effect
 
     this.hud();
+  }
+
+  this.collide = function collide(other) {
+    this.shield -= 10;
+    console.log("hit!");
   }
 }

@@ -47,6 +47,10 @@ function Projectile(weapon) {
      canvasFg.stroke();
    }
  }
+
+ this.collide = function collide(other) {
+   this.state.alive = false;
+ }
 }
 
 function ProjectileFactory() {
@@ -66,6 +70,11 @@ function ProjectileFactory() {
    // Initial weapon definition
    // Behaviour of projectile
    projectile.behaviour = new DefaultBehaviour(projectile);
+   if(initPos.type == COLLISION_MASK_CURSOR) {
+     projectile.hitbox.type = COLLISION_MASK_WEAPON_CURSOR;
+   } else {
+     projectile.hitbox.type = COLLISION_MASK_WEAPON_PASSERBY;
+   }
  }
 
  this.update = function update() {

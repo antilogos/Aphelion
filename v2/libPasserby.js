@@ -5,7 +5,7 @@ PASSERBY_SPAWN_CIRCLE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.45;
 function Passerby() {
   this.last = {seen: Date.now(), fire: Date.now(), update: 0};
   this.behaviour = new ChasingBehaviour(this);
-  this.hitbox = {h: 0, v: 0, width: 2, height: 2, radius: 2};
+  this.hitbox = {h: 0, v: 0, width: 20, height: 20, radius: 10, type: COLLISION_MASK_PASSERBY};
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = new Weapon();
   this.hull = {alive: true, shield: 100};
@@ -50,6 +50,14 @@ function Passerby() {
       canvasFg.stroke();
     }
   }
+
+  this.collide = function collide(other) {
+    this.hull.shield -= 100;
+    if(this.hull.shield == 0) {
+      this.hull.alive = false;
+      console.log("shot down!");
+    }
+  }
 }
 
 function PasserbyFactory() {
@@ -85,7 +93,7 @@ function PasserbyFactory() {
     var canvasFg = CANVAS_FOREGROUND.getContext('2d');
     canvasFg.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.passerbyList.forEach(function draw(p) { p.draw() });
-    if(this.passerbyList.length < 20) this.spawn();
+    if(this.passerbyList.length < 10) this.spawn();
   }
 }
 

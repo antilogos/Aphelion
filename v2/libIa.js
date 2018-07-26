@@ -70,11 +70,10 @@ function FireAtWill(passerby) {
     // Always fire when ready
     if(this.passerby.last.seen - this.passerby.last.fire > 1000/this.passerby.weapon.fireRate * 5 /*firerate factor for IA*/) {
       // Define projectile state
-      var initPos = {h: this.passerby.hitbox.h, v: this.passerby.hitbox.v};
       var initVelN = Math.sqrt(Math.pow(this.passerby.target.hitbox.h - this.passerby.hitbox.h,2) + Math.pow(this.passerby.target.hitbox.v - this.passerby.hitbox.v,2));
       var initVel = {h: (this.passerby.target.hitbox.h - this.passerby.hitbox.h) / initVelN * this.passerby.weapon.velocity, v: (this.passerby.target.hitbox.v - this.passerby.hitbox.v) / initVelN * this.passerby.weapon.velocity}
       // Confirm creation of projectile
-      projectileFactory.spawn(initPos, initVel, this.weapon);
+      projectileFactory.spawn(this.passerby.hitbox, initVel, this.weapon);
       // Update firing state
       this.passerby.last.fire = Date.now();
     }
