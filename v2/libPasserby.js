@@ -55,7 +55,7 @@ function Passerby() {
     this.hull.shield -= 100;
     if(this.hull.shield == 0) {
       this.hull.alive = false;
-      console.log("shot down!");
+      //console.log("shot down!");
     }
   }
 }

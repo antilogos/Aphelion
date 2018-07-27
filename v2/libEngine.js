@@ -1,6 +1,6 @@
 // Translate velocity factor to pixel distance
 var ENGINE_TIME_TO_PIXEL_CELERITY = 1 / 500;
-var QUADTREE_NODE_ELEMENTS_THRESHOLD = 5;
+var QUADTREE_NODE_ELEMENTS_THRESHOLD = 3;
 var QUADTREE_NODE_MIN_LEVEL = 3;
 var COLLISION_MASK_CURSOR = 1;
 var COLLISION_MASK_PASSERBY = 2;
@@ -29,9 +29,9 @@ function Quadtree(level, h, v) {
     var collisionBox = firstOrderBoundBox(element.hitbox, element.velocity);
     // If not a fit, should escalate
     if(!this.fitInQuad(collisionBox) && allowExpand) {
-      //console.log("element " + collisionBox.h + ":" + collisionBox.v + " did not fit in QT " + this.current.h + "-" + this.current.v + "^" + this.current.level);
+      console.log("element " + collisionBox.h + ":" + collisionBox.v + " did not fit in QT " + this.current.h + "-" + this.current.v + "^" + this.current.level);
       // Determine which quadrant it should go
-      if(collisionBox.h <= this.current.h && collisionBox.v <= this.current.v) { //
+      if(collisionBox.h <= this.current.h && collisionBox.v <= this.current.v) {
         var newFather = new Quadtree(this.current.level +1, this.current.h - this.current.width, this.current.v - this.current.height);
         newFather.nwChild = new Quadtree(this.current.level, this.current.h - this.current.width, this.current.v - this.current.height);
         newFather.neChild = new Quadtree(this.current.level, this.current.h, this.current.v - this.current.height);
@@ -44,14 +44,14 @@ function Quadtree(level, h, v) {
         newFather.seChild = new Quadtree(this.current.level, this.current.h, this.current.v + this.current.height);
         newFather.swChild = new Quadtree(this.current.level, this.current.h - this.current.width, this.current.v + this.current.height);
         newFather.neChild = this;
-        //console.log("expanding quadtree South West");
+        //console.log("expanding quadtree North East");
       } else if(collisionBox.v <= this.current.v) {
         var newFather = new Quadtree(this.current.level +1, this.current.h, this.current.v - this.current.height);
         newFather.nwChild = new Quadtree(this.current.level, this.current.h, this.current.v - this.current.height);
         newFather.neChild = new Quadtree(this.current.level, this.current.h + this.current.width, this.current.v - this.current.height);
         newFather.seChild = new Quadtree(this.current.level, this.current.h + this.current.width, this.current.v);
         newFather.swChild = this;
-        //console.log("expanding quadtree North East");
+        //console.log("expanding quadtree South West");
       } else {
         var newFather = new Quadtree(this.current.level +1, this.current.h, this.current.v);
         newFather.seChild = new Quadtree(this.current.level, this.current.h + this.current.width, this.current.v + this.current.height);
@@ -62,10 +62,8 @@ function Quadtree(level, h, v) {
       }
       quadTree = newFather;
       //console.log("expanding quadtree to " + quadTree.current.h + "-" + quadTree.current.v + "^" + quadTree.current.level);
-      if(this.current.level <= 10) {
+      if(this.current.level <= 30) {
         newFather.insertElement(element, true);
-      } else {
-        console.log("abandonning putting element " + element + " into quadtree");
       }
     } else {
       // Check if need to insert in a child element if they exist
@@ -79,7 +77,7 @@ function Quadtree(level, h, v) {
         } else if(this.seChild.fitInQuad(collisionBox)) {
           this.seChild.insertElement(element, false);
         } else {
-          // Even if full, must stockpile element at the least level possible
+          // Even if full, must stockpile element at the lowest level possible
           this.current.elements.push(element);
         }
       } else {
@@ -93,26 +91,15 @@ function Quadtree(level, h, v) {
           var ne = new Quadtree(this.current.level -1, this.current.h + this.current.width/2, this.current.v);
           var sw = new Quadtree(this.current.level -1, this.current.h, this.current.v + this.current.height/2);
           var se = new Quadtree(this.current.level -1, this.current.h + this.current.width/2, this.current.v + this.current.height/2);
-          var elementsList = this.current.elements;
-          this.current.elements.forEach(function distributeChild(distribute, index) {
-            if(nw.fitInQuad(collisionBox)) {
-              elementsList.splice(index, 1);
-              nw.insertElement(distribute, false);
-            } else if(ne.fitInQuad(collisionBox)) {
-              elementsList.splice(index, 1);
-              ne.insertElement(distribute, false);
-            } else if(sw.fitInQuad(collisionBox)) {
-              elementsList.splice(index, 1);
-              sw.insertElement(distribute, false);
-            } else if(se.fitInQuad(collisionBox)) {
-              elementsList.splice(index, 1);
-              se.insertElement(distribute, false);
-            }
-          });
           this.nwChild = nw;
           this.neChild = ne;
           this.swChild = sw;
           this.seChild = se;
+          var elementsList = this.current.elements.splice(0, this.current.elements.length);
+          var intermediateTree = this;
+          elementsList.forEach(function distributeChild(distribute, index) {
+            intermediateTree.insertElement(distribute, false);
+          });
         }
       }
     }
@@ -174,8 +161,8 @@ function Quadtree(level, h, v) {
 
   this.draw = function draw() {
     // Debug
-    var context = CANVAS_BACKGROUND.getContext('2d');
     /*
+    var context = CANVAS_BACKGROUND.getContext('2d');
     var relX = this.current.h - cursor.hitbox.h + CANVAS_WIDTH /2;
     var relY = this.current.v - cursor.hitbox.v + CANVAS_HEIGHT /2;
 
@@ -190,18 +177,22 @@ function Quadtree(level, h, v) {
     context.lineWidth = 3;
     context.strokeStyle = 'red';
     context.beginPath();
+    var level = this.current.level;
     this.current.elements.forEach(function drawBoundBox(e) {
       var boundBox = firstOrderBoundBox(e.hitbox, e.velocity);
       var relX = boundBox.h - cursor.hitbox.h + CANVAS_WIDTH /2;
       var relY = boundBox.v - cursor.hitbox.v + CANVAS_HEIGHT /2;
       context.strokeRect(relX, relY, boundBox.width, boundBox.height);
+      context.font = '8pt Calibri';
+      context.fillStyle = 'black';
+      context.fillText(level, relX+3, relY+15);
     });
 
     if(this.nwChild != null) this.nwChild.draw();
     if(this.neChild != null) this.neChild.draw();
     if(this.swChild != null) this.swChild.draw();
     if(this.seChild != null) this.seChild.draw();
-        */
+            */
   };
 };
 

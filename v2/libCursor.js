@@ -73,8 +73,8 @@ function Cursor() {
         this.inertia.v = this.hull.velocity / normal * this.inertia.v;
       }
       */
-			this.velocity.h = this.hull.velocity / speedN * this.velocity.h;
-			this.velocity.v = this.hull.velocity / speedN * this.velocity.v;
+			this.velocity.h = speedN == 0 ? 0 : this.hull.velocity / speedN * this.velocity.h;
+			this.velocity.v = speedN == 0 ? 0 : this.hull.velocity / speedN * this.velocity.v;
     } else {
       // inertiacore is always at max speed
     }
@@ -92,7 +92,7 @@ function Cursor() {
           // Define projectile state
           var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
           var mouseVelN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
-          var initVel = {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
+          var initVel = initVelN == 0 ? {h:0, v:0} : {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
           // Confirm creation of projectile
           projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
           // Update firing state
@@ -181,6 +181,6 @@ function Cursor() {
 
   this.collide = function collide(other) {
     this.shield -= 10;
-    console.log("hit!");
+    //console.log("hit!");
   }
 }

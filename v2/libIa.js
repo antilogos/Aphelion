@@ -15,8 +15,8 @@ function ChasingBehaviour(passerby) {
     var diffX = this.passerby.hitbox.h - passerby.target.hitbox.h;
     var diffY = this.passerby.hitbox.v - passerby.target.hitbox.v;
     var diffN = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
-    var diffH = diffX / diffN * this.passerby.velocity.n;
-    var diffV = diffY / diffN * this.passerby.velocity.n;
+    var diffH = diffN == 0 ? 0 : diffX / diffN * this.passerby.velocity.n;
+    var diffV = diffN == 0 ? 0 : diffY / diffN * this.passerby.velocity.n;
     // TODO smooth turn
     this.passerby.velocity.h = -diffH;
     this.passerby.velocity.v = -diffV;
@@ -37,8 +37,8 @@ function OrbitingBehaviour(passerby) {
     }
     normal = Math.sqrt(Math.pow(orbitX,2)+Math.pow(orbitY,2));
     if(normal > this.passerby.velocity.n) {
-      orbitX = orbitX * this.passerby.velocity.n / normal;
-      orbitY = orbitY * this.passerby.velocity.n / normal;
+      orbitX = normal == 0 ? 0 : orbitX * this.passerby.velocity.n / normal;
+      orbitY = normal == 0 ? 0 : orbitY * this.passerby.velocity.n / normal;
     }
     //
     this.passerby.velocity.h = -orbitX;
@@ -54,8 +54,8 @@ function FleeingBehaviour(passerby) {
     var diffX = this.passerby.hitbox.h - passerby.target.hitbox.h;
     var diffY = this.passerby.hitbox.v - passerby.target.hitbox.v;
     var diffN = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
-    var diffH = diffX / diffN * this.passerby.velocity.n;
-    var diffV = diffY / diffN * this.passerby.velocity.n;
+    var diffH = diffN == 0 ? 0 : diffX / diffN * this.passerby.velocity.n;
+    var diffV = diffN == 0 ? 0 : diffY / diffN * this.passerby.velocity.n;
     // TODO smooth turn
     this.passerby.velocity.h = diffH;
     this.passerby.velocity.v = diffV;
@@ -71,7 +71,7 @@ function FireAtWill(passerby) {
     if(this.passerby.last.seen - this.passerby.last.fire > 1000/this.passerby.weapon.fireRate * 5 /*firerate factor for IA*/) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.passerby.target.hitbox.h - this.passerby.hitbox.h,2) + Math.pow(this.passerby.target.hitbox.v - this.passerby.hitbox.v,2));
-      var initVel = {h: (this.passerby.target.hitbox.h - this.passerby.hitbox.h) / initVelN * this.passerby.weapon.velocity, v: (this.passerby.target.hitbox.v - this.passerby.hitbox.v) / initVelN * this.passerby.weapon.velocity}
+      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.passerby.target.hitbox.h - this.passerby.hitbox.h) / initVelN * this.passerby.weapon.velocity, v: (this.passerby.target.hitbox.v - this.passerby.hitbox.v) / initVelN * this.passerby.weapon.velocity}
       // Confirm creation of projectile
       projectileFactory.spawn(this.passerby.hitbox, initVel, this.weapon);
       // Update firing state
