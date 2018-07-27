@@ -4,7 +4,7 @@ function AnimationFactory() {
 	this.poolAoe = [];
 	this.poolTrail = [];
 	this.poolLine = [];
-	
+
 	this.init = function() {
 		for(var i=0; i<100000; i++) {
 			var animationAoe = new AoeAnimation();
@@ -15,7 +15,7 @@ function AnimationFactory() {
 			this.poolLine[i] = animationLine;
 		}
 	};
-	
+
 	this.discard = function(object) {
 		object.alive = false;
 		if(object instanceof AoeAnimation) {
@@ -28,7 +28,7 @@ function AnimationFactory() {
 			this.poolLine.push(this.poolLine.splice(this.poolLine.lastIndexOf(object),1)[0]);
 		}
 	}
-	
+
 	this.spawnAoeAnimation = function(x, y, vx, vy, aoe) {
 		// Spawn an AoeAnimation
 		if(!this.poolAoe[this.poolAoe.length - 1].alive) {
@@ -41,7 +41,7 @@ function AnimationFactory() {
 		}
 		return animation;
 	};
-	
+
 	this.spawnTrailAnimation = function(x, y, vx, vy, decay) {
 		var animation;
 		// Spawn a TrailAnimation
@@ -56,7 +56,7 @@ function AnimationFactory() {
 		}
 		return animation;
 	};
-	
+
 	this.spawnLineAnimation = function(x, y, x2, y2, decay) {
 		var animation;
 		// Spawn a LineAnimation
@@ -71,7 +71,7 @@ function AnimationFactory() {
 		}
 		return animation;
 	};
-	
+
 	this.draw = function() {
 		for(var i=0; i<this.poolAoe.length && this.poolAoe[i].alive; i++) {
 			this.poolAoe[i].move();
@@ -83,7 +83,7 @@ function AnimationFactory() {
 			this.poolLine[i].move();
 		}
 	};
-	
+
 	this.getAlivePool = function() {
 		var obj = [];
 		for(var i=0; i<this.poolAoe.length && this.poolAoe[i].alive; i++) {
@@ -107,7 +107,7 @@ Animation.prototype.constructor = Animation;
 
 function AoeAnimation() {
 	this.areaOfEffect = 0;
-	
+
 	this.spawn = function(x,y,vx,vy, aoe) {
 		this.alive=true;
 		this.lastseen = Date.now();
@@ -118,13 +118,13 @@ function AoeAnimation() {
 		this.areaOfEffect = aoe;
 		this.decay = Date.now() + 350;
 	}
-	
+
 	this.draw = function() {
 		engine.mainContext.arc(relativeX, relativeY, this.areaOfEffect, 0, 2 * Math.PI, false);
 		engine.mainContext.lineWidth = 4;
 		engine.mainContext.strokeStyle = '#FF00FF';
 	};
-	
+
 	this.collide = function(objects) {
 	};
 }
@@ -133,7 +133,7 @@ function TrailAnimation() {
 	this.startT = 0;
 	this.startH = 0;
 	this.startV = 0;
-	
+
 	this.spawn = function(x,y,vx,vy, decay) {
 		this.alive=true;
 		this.lastseen = Date.now();
@@ -146,7 +146,7 @@ function TrailAnimation() {
 		this.velocityV = vy;
 		this.decay = Date.now() + decay;
 	}
-	
+
 	this.move = function() {
 			// Compute relative position to screen
 			var relativeStartX = 0;
@@ -164,10 +164,10 @@ function TrailAnimation() {
 			}
 			var relativeX = this.positionH - engine.cursor.positionH + engine.mainCanvas.clientWidth / 2;
 			var relativeY = this.positionV - engine.cursor.positionV + engine.mainCanvas.clientHeight / 2;
-			
+
 			// If start or end is in the canvas
 			if( (relativeStartX > 0 && relativeStartX < engine.mainCanvas.clientWidth
-				&& relativeStartY > 0 && relativeStartY < engine.mainCanvas.clientHeight) || 
+				&& relativeStartY > 0 && relativeStartY < engine.mainCanvas.clientHeight) ||
 				(relativeX > 0 && relativeX < engine.mainCanvas.clientWidth
 				&& relativeY > 0 && relativeY < engine.mainCanvas.clientHeight)) {
 				if(this.velocityH != 0 && this.velocityV != 0) {
@@ -191,13 +191,13 @@ function TrailAnimation() {
 
 				}
 			}
-			
+
 			// Recycle animation at expiration time
 			if(this.lastseen > this.decay) {
 				engine.animationPool.discard(this);
 			}
 	};
-	
+
 	this.collide = function(objects) {
 	};
 }
@@ -215,7 +215,7 @@ function LineAnimation() {
 	this.startH = 0;
 	this.startV = 0;
 	this.decay = 0;
-	
+
 	this.spawn = function(x,y,x2, y2, decay) {
 		this.alive=true;
 		this.lastseen = Date.now();
@@ -227,21 +227,21 @@ function LineAnimation() {
 		this.decay = Date.now() + decay;
 		this.flash = false;
 	}
-	
+
 	this.move = function() {
 			// Actualize Time
 			var updateTime = Date.now() - this.lastseen;
 			this.lastseen = Date.now();
-			
+
 			// Compute relative position to screen
 			var relativeStartX = this.startH - engine.cursor.positionH + engine.mainCanvas.clientWidth / 2;
 			var	relativeStartY = this.startV - engine.cursor.positionV + engine.mainCanvas.clientHeight / 2;
 			var relativeX = this.positionH - engine.cursor.positionH + engine.mainCanvas.clientWidth / 2;
 			var relativeY = this.positionV - engine.cursor.positionV + engine.mainCanvas.clientHeight / 2;
-			
+
 			// If start or end is in the canvas
 			if( (relativeStartX > 0 && relativeStartX < engine.mainCanvas.clientWidth
-				&& relativeStartY > 0 && relativeStartY < engine.mainCanvas.clientHeight) || 
+				&& relativeStartY > 0 && relativeStartY < engine.mainCanvas.clientHeight) ||
 				(relativeX > 0 && relativeX < engine.mainCanvas.clientWidth
 				&& relativeY > 0 && relativeY < engine.mainCanvas.clientHeight)) {
 				// Redraw animation at center
@@ -260,13 +260,13 @@ function LineAnimation() {
 				}
 				engine.mainContext.stroke();
 			}
-			
+
 			// Recycle animation at expiration time
 			if(this.lastseen > this.decay) {
 				engine.animationPool.discard(this);
 			}
 	};
-	
+
 	this.collide = function(objects) {
 	};
 }

@@ -1,3 +1,4 @@
+STAR_DISTRIBUTION={X: 10, Y: 10, R:0.4};
 /*
  * Background animation
  * XXX just some debug drawing for the moment
@@ -51,5 +52,17 @@ function Background() {
     this.context.strokeStyle = '#009900';
     this.context.arc(inputListener.mouseX, inputListener.mouseY, 2, 0, Math.PI*2, true);
     this.context.stroke();
+  }
+}
+
+function Star(x, y) {
+  this.context = CANVAS_BACKGROUND.getContext('2d');
+  this.x = x;
+  this.y = y;
+
+  this.draw = function draw() {
+    var relX = CANVAS_WIDTH/STAR_DISTRIBUTION.X * x;
+    var relY = CANVAS_HEIGHT/STAR_DISTRIBUTION.Y * y;
+
   }
 }
