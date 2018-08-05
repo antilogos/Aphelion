@@ -12,7 +12,7 @@ var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
  */
 function Cursor() {
   // Information to display
-  this.hitbox = { h: 0, v: 0, width: 20, height: 20, radius: 10, type: COLLISION_MASK_CURSOR};
+  this.hitbox = { h: 0, v: 0, width: 10, height: 10, radius: 5, type: COLLISION_MASK_CURSOR};
   this.velocity = {h: 0, v: 0, n: 0};
   this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0};
   this.heat = 0;
