@@ -8,6 +8,8 @@ var COLLISION_MASK_WEAPON_CURSOR = 4;
 var COLLISION_MASK_WEAPON_PASSERBY = 8;
 var COLLISION_MASK_WEAPON_TYPE_ENERGY = 16;
 var COLLISION_MASK_WEAPON_TYPE_PROJECTILE = 32;
+var COLLISION_SHAPE_ROUND = 1;
+var COLLISION_SHAPE_BOX = 2;
 
 function Quadtree(level, h, v) {
 
@@ -154,6 +156,10 @@ function Quadtree(level, h, v) {
     this.clear();
     passerbyFactory.passerbyList.forEach(function insertPasserby(p) { quadTree.insertElement(p, true); });
     projectileFactory.projectileList.forEach(function insertProjectile(p) { quadTree.insertElement(p, true); });
+    stationFactory.stationList.forEach(function insertStation(s) {
+        s.arrays.forEach(function insertArray(a) { quadTree.insertElement(a, true); });
+        s.nodes.forEach(function insertNode(n) { quadTree.insertElement(n, true); });
+    });
     quadTree.insertElement(cursor, true);
     // Detect collision
     quadTree.checkCollision();
@@ -192,7 +198,7 @@ function Quadtree(level, h, v) {
     if(this.neChild != null) this.neChild.draw();
     if(this.swChild != null) this.swChild.draw();
     if(this.seChild != null) this.seChild.draw();
-            */
+    */
   };
 };
 
@@ -212,6 +218,14 @@ function checkInboundRectangle(boundBoxA, boundBoxB) {
 };
 
 function firstOrderBoundBox(hitbox, velocity) {
-  return {h: hitbox.h - hitbox.width/2 + Math.max(velocity.h,0) * ENGINE_TIME_TO_PIXEL_CELERITY, v: hitbox.v - hitbox.height/2 + Math.min(velocity.v,0) * ENGINE_TIME_TO_PIXEL_CELERITY,
-    width: hitbox.width + Math.abs(velocity.h) * ENGINE_TIME_TO_PIXEL_CELERITY, height: hitbox.height + Math.abs(velocity.v) * ENGINE_TIME_TO_PIXEL_CELERITY}
+  if(hitbox.shape == COLLISION_SHAPE_ROUND) {
+    return {h: hitbox.h - hitbox.width/2 + Math.max(velocity.h,0) * ENGINE_TIME_TO_PIXEL_CELERITY, v: hitbox.v - hitbox.height/2 + Math.min(velocity.v,0) * ENGINE_TIME_TO_PIXEL_CELERITY,
+      width: hitbox.width + Math.abs(velocity.h) * ENGINE_TIME_TO_PIXEL_CELERITY, height: hitbox.height + Math.abs(velocity.v) * ENGINE_TIME_TO_PIXEL_CELERITY};
+  } else if(hitbox.shape == COLLISION_SHAPE_BOX) {
+    return {h: hitbox.h + Math.max(velocity.h,0) * ENGINE_TIME_TO_PIXEL_CELERITY, v: hitbox.v + Math.min(velocity.v,0) * ENGINE_TIME_TO_PIXEL_CELERITY,
+      width: hitbox.width + Math.abs(velocity.h) * ENGINE_TIME_TO_PIXEL_CELERITY, height: hitbox.height + Math.abs(velocity.v) * ENGINE_TIME_TO_PIXEL_CELERITY};
+  } else {
+    console.log("woops");
+    return -1;
+  }
 };

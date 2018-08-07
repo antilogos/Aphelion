@@ -1,6 +1,6 @@
 
 // Translate distance of mouse in pixel to velocity : smooth velocity around 0.3,
-var THRUST_HEELOVER_RATIO = 1 / 500;
+var THRUST_HEELOVER_RATIO = 1 / 400;
 var HEAT_COOLDOWN_RATIO = 1 / 6000;
 var SHIELD_COOLDOWN_RATIO = 1 / 6000;
 var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
@@ -12,7 +12,7 @@ var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
  */
 function Cursor() {
   // Information to display
-  this.hitbox = { h: 0, v: 0, width: 10, height: 10, radius: 5, type: COLLISION_MASK_CURSOR};
+  this.hitbox = { h: 0, v: 0, width: 10, height: 10, radius: 5, type: COLLISION_MASK_CURSOR, shape:COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n: 0};
   this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0};
   this.heat = 0;

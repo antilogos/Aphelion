@@ -5,7 +5,7 @@ function Projectile(weapon) {
   this.lastseen = Date.now();
   this.updateTime = 0;
   this.behaviour = new DefaultBehaviour(this);
-  this.hitbox = {h: 0, v: 0, width: 2, height: 2, radius: 1};
+  this.hitbox = {h: 0, v: 0, width: 2, height: 2, radius: 1, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = {target: 0, damage: 100};
   this.state = {alive: true, lifespan: Date.now() + 6000};

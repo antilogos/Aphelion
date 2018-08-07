@@ -5,7 +5,7 @@ PASSERBY_SPAWN_CIRCLE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.45;
 function Passerby() {
   this.last = {seen: Date.now(), fire: Date.now(), update: 0};
   this.behaviour = new ChasingBehaviour(this);
-  this.hitbox = {h: 0, v: 0, width: 20, height: 20, radius: 10, type: COLLISION_MASK_PASSERBY};
+  this.hitbox = {h: 0, v: 0, width: 14, height: 14, radius: 7, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = new Weapon();
   this.hull = {alive: true, shield: 100};
