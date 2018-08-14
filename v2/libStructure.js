@@ -8,7 +8,7 @@ STRUCTURE_STATION_RADIUS = 5;
 STRUCTURE_ARRAY_LENGTH = 50;
 STRUCTURE_ARRAY_THICK = 4;
 STRUCTURE_SPACE = STRUCTURE_STATION_RADIUS + STRUCTURE_ARRAY_LENGTH;
-STRUCTURE_ANIMATION_DEATHTIME = 1200;
+STRUCTURE_ANIMATION_DEATHTIME = 100;
 /*
  *
  */
@@ -38,7 +38,6 @@ function BaseStation(size, coordinate) {
     width: STRUCTURE_STATION_RADIUS, height: STRUCTURE_STATION_RADIUS, radius: STRUCTURE_STATION_RADIUS,
     type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND
   };
-  console.log(centralNode.x+"x"+centralNode.y);
   this.nodes.push(centralNode);
 
   // Starting with first nodes, create and pile arrays, exclude those that create loop, sort them by weight, pick first to determine nexte node
@@ -133,6 +132,7 @@ function StationArray(linkA, linkB, coordinate) {
   this.hull = {shield: 0};
   this.state = {alive: true, lifespan: -1};
   this.velocity = {h:0, v:0, n:0};
+  this.propagateFullDestruction = false;
 
   if(this.nodeA.x == this.nodeB.x) {
     // Orientation verticale
@@ -151,11 +151,17 @@ function StationArray(linkA, linkB, coordinate) {
   this.nodeB.links.push(this);
 
   this.update = function update() {
-    if((this.nodeA.state.alive && this.nodeB.state.alive) == false && this.state.alive) {
-      this.die();
-    }
-    if(!this.state.alive && this.state.lifespan < Date.now()) {
-      this.state.lifespan = 0;
+    checkDeath(this);
+    if(!stillAlive(this)) {
+      // Propagate destruction from array to nodes
+      if(stillAlive(this.nodeA)) {
+        this.nodeA.propagateFullDestruction = this.propagateFullDestruction;
+        this.nodeA.checkPropagate();
+      }
+      if(stillAlive(this.nodeB)) {
+        this.nodeB.propagateFullDestruction = this.propagateFullDestruction;
+        this.nodeB.checkPropagate();
+      }
     }
   }
 
@@ -163,6 +169,7 @@ function StationArray(linkA, linkB, coordinate) {
     if(this.building == STRUCTURE_COMPONENT_STATE_ALIVE) {
       var context = CANVAS_FOREGROUND.getContext('2d');
       context.fillStyle = "#33CCCC";
+      if(!this.state.alive) context.fillStyle = "#333333";
       context.fillRect(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.width, this.hitbox.height);
     }
   }
@@ -191,22 +198,14 @@ function StationNode(x, y, coordinate) {
   this.hitbox = {h: coordinate.h + this.x*STRUCTURE_SPACE, v: coordinate.v + this.y*STRUCTURE_SPACE,
     width: STRUCTURE_STATION_RADIUS, height:STRUCTURE_STATION_RADIUS,
     radius: STRUCTURE_STATION_RADIUS, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
+  this.propagateFullDestruction = false;
 
   this.update = function update() {
+    checkDeath(this);
     // Snapeshot all last info
     this.last.update = Date.now() - this.last.seen;
 
-    /*
-    this.links = this.links.filter(function stillAlive(a) { return a.state.alive && a.state.lifespan == 0; });
-    if(this.state.alive && this.links.length < 2 && this.status == STATION_NODE_ROLE_BRANCH) {
-      this.die();
-    }
-    if(this.state.alive && this.links.length < 1 && this.status == STATION_NODE_ROLE_ANNEX) {
-      this.die();
-    }*/
-    if(!this.state.alive && this.state.lifespan < Date.now()) {
-      this.state.lifespan = 0;
-    }
+    this.links = this.links.filter( stillAlive);
   }
 
   this.draw = function draw() {
@@ -233,13 +232,13 @@ function StationNode(x, y, coordinate) {
     if(this.status == STATION_NODE_ROLE_BRANCH) {
       // Branch nodes are invicible
     } else if(this.status == STATION_NODE_ROLE_ANNEX) {
-      this.state.shield -= 100;
-      if(this.state.shield == 0) {
+      this.hull.shield -= 100;
+      if(this.hull.shield <= 0) {
         this.die();
       }
     } else if(this.status == STATION_NODE_ROLE_CENTRAL) {
-      this.state.shield -= 100;
-      if(this.state.shield == 0) {
+      this.hull.shield -= 100;
+      if(this.hull.shield <= 0) {
         this.die();
       }
     }
@@ -247,8 +246,38 @@ function StationNode(x, y, coordinate) {
 
   this.die = function die() {
    this.state.alive = false;
-   this.state.lifespan = Date.now() + STRUCTURE_ANIMATION_DEATHTIME;
+   this.state.lifespan = Date.now();
    // Add animation
+
+   // PropagateDestruction from node to arrays
+   if(this.status == STATION_NODE_ROLE_BRANCH) {
+     if(this.propagateFullDestruction) {
+       this.links.forEach(function propagate(a) {
+         a.propagateFullDestruction = true;
+         a.die();
+       });
+     } else {
+       if(this.links.filter( stillAlive).length < 2) {
+         this.links.forEach(function propagate(a) { a.die() });
+       }
+     }
+   } else if(this.status == STATION_NODE_ROLE_ANNEX) {
+     this.links.forEach(function propagate(a) { a.die() });
+   } else if(this.status == STATION_NODE_ROLE_CENTRAL) {
+     this.propagateFullDestruction = true;
+     this.links.forEach(function propagate(a) {
+       a.propagateFullDestruction = true;
+       a.die();
+     });
+   }
+  }
+
+  this.checkPropagate = function checkPropagate() {
+    if(this.propagateFullDestruction) {
+      this.die();
+    } else if(this.status == STATION_NODE_ROLE_BRANCH && this.links.filter( stillAlive).length < 2) {
+      this.die();
+    }
   }
 }
 

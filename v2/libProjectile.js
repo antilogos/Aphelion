@@ -16,9 +16,7 @@ function Projectile(weapon) {
      if(this.state.alive && this.state.lifespan < Date.now()) {
        this.die();
      }
-     if(!this.state.alive && this.state.lifespan < Date.now()) {
-       this.state.lifespan = 0;
-     }
+     checkDeath(this);
      // Only care about in screen
      if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
        && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width

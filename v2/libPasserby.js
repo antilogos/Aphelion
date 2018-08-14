@@ -14,9 +14,7 @@ function Passerby() {
   this.target = cursor;
 
   this.update = function update() {
-    if(this.state.alive == false && this.state.lifespan < Date.now()) {
-      this.state.lifespan = 0;
-    }
+    checkDeath(this);
     // Only care about in screen passerby
     if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
       && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
