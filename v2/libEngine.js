@@ -154,11 +154,11 @@ function Quadtree(level, h, v) {
   this.update = function update() {
     // Fill in the quadTree
     this.clear();
-    passerbyFactory.passerbyList.forEach(function insertPasserby(p) { quadTree.insertElement(p, true); });
-    projectileFactory.projectileList.forEach(function insertProjectile(p) { quadTree.insertElement(p, true); });
+    passerbyFactory.passerbyList.filter(function stillAlive(p) { return p.state.alive; }).forEach(function insertPasserby(p) { quadTree.insertElement(p, true); });
+    projectileFactory.projectileList.filter(function stillAlive(p) { return p.state.alive; }).forEach(function insertProjectile(p) { quadTree.insertElement(p, true); });
     stationFactory.stationList.forEach(function insertStation(s) {
-        s.arrays.forEach(function insertArray(a) { quadTree.insertElement(a, true); });
-        s.nodes.forEach(function insertNode(n) { quadTree.insertElement(n, true); });
+        s.arrays.filter(function stillAlive(a) { return a.state.alive; }).forEach(function insertArray(a) { quadTree.insertElement(a, true); });
+        s.nodes.filter(function stillAlive(n) { return n.state.alive; }).forEach(function insertNode(n) { quadTree.insertElement(n, true); });
     });
     quadTree.insertElement(cursor, true);
     // Detect collision

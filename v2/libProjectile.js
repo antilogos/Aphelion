@@ -1,3 +1,4 @@
+PROJECTILE_ANIMATION_DEATHTIME = 50;
 /*
  *
  */
@@ -12,8 +13,11 @@ function Projectile(weapon) {
 
   this.update = function update() {
      // Delete old Projectile
-     if(this.state.lifespan < Date.now()) {
-       this.state.alive = false;
+     if(this.state.alive && this.state.lifespan < Date.now()) {
+       this.die();
+     }
+     if(!this.state.alive && this.state.lifespan < Date.now()) {
+       this.state.lifespan = 0;
      }
      // Only care about in screen
      if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
@@ -24,7 +28,7 @@ function Projectile(weapon) {
        this.lastseen += this.updateTime;
 
        // Manage movement
-       if(this.behaviour.move) this.behaviour.move();
+       if(this.behaviour.move && this.state.alive) this.behaviour.move();
 
        this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
        this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
@@ -49,7 +53,13 @@ function Projectile(weapon) {
  }
 
  this.collide = function collide(other) {
+   this.die();
+ }
+
+ this.die = function die() {
    this.state.alive = false;
+   this.state.lifespan = Date.now() + PROJECTILE_ANIMATION_DEATHTIME;
+   // Add animation
  }
 }
 
@@ -79,7 +89,7 @@ function ProjectileFactory() {
 
  this.update = function update() {
    this.projectileList.forEach(function update(p) { p.update(); });
-   this.projectileList = this.projectileList.filter( function stillAlive(p) { return p.state.alive; });
+   this.projectileList = this.projectileList.filter( stillAlive);
  }
 
  this.draw = function draw() {

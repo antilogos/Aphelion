@@ -1,4 +1,5 @@
 PASSERBY_SPAWN_CIRCLE = Math.min(CANVAS_WIDTH, CANVAS_HEIGHT) * 0.45;
+PASSERBY_ANIMATION_DEATHTIME = 600;
 /*
  *
  */
@@ -8,10 +9,14 @@ function Passerby() {
   this.hitbox = {h: 0, v: 0, width: 14, height: 14, radius: 7, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = new Weapon();
-  this.hull = {alive: true, shield: 100};
+  this.hull = {shield: 100};
+  this.state = {alive: true, lifespan: -1};
   this.target = cursor;
 
   this.update = function update() {
+    if(this.state.alive == false && this.state.lifespan < Date.now()) {
+      this.state.lifespan = 0;
+    }
     // Only care about in screen passerby
     if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
       && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
@@ -21,7 +26,7 @@ function Passerby() {
       this.last.seen += this.last.update;
 
       // Manage movement & firing
-      if(this.behaviour.move) this.behaviour.move();
+      if(this.behaviour.move && this.state.alive) this.behaviour.move();
 
       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
@@ -37,8 +42,13 @@ function Passerby() {
       // Draw
       var canvasFg = CANVAS_FOREGROUND.getContext('2d');
       canvasFg.beginPath();
-      canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
+      if(this.state.lifespan > 0) {
+        canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius * (Math.max(0,this.state.lifespan - Date.now()) / PASSERBY_ANIMATION_DEATHTIME), 0, 2 * Math.PI, false);
+      } else {
+        canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
+      }
       canvasFg.lineWidth = 1;
+
       if (this.behaviour instanceof ComplexeBehaviourHarrier) {
         canvasFg.strokeStyle = '#6633BB';
       } else if (this.behaviour instanceof ComplexeBehaviourHunter) {
@@ -54,9 +64,14 @@ function Passerby() {
   this.collide = function collide(other) {
     this.hull.shield -= 100;
     if(this.hull.shield == 0) {
-      this.hull.alive = false;
-      //console.log("shot down!");
+      this.die();
     }
+  }
+
+  this.die = function die() {
+    this.state.alive = false;
+    this.state.lifespan = Date.now() + PASSERBY_ANIMATION_DEATHTIME;
+    // Add animation
   }
 }
 
@@ -86,7 +101,7 @@ function PasserbyFactory() {
 
   this.update = function update() {
     this.passerbyList.forEach(function update(p) { p.update() });
-    this.passerbyList = this.passerbyList.filter( function stillAlive(p) { return p.hull.alive; });
+    this.passerbyList = this.passerbyList.filter( stillAlive);
   }
 
   this.draw = function draw() {

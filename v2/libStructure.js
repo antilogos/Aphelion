@@ -8,17 +8,18 @@ STRUCTURE_STATION_RADIUS = 5;
 STRUCTURE_ARRAY_LENGTH = 50;
 STRUCTURE_ARRAY_THICK = 4;
 STRUCTURE_SPACE = STRUCTURE_STATION_RADIUS + STRUCTURE_ARRAY_LENGTH;
+STRUCTURE_ANIMATION_DEATHTIME = 1200;
 /*
  *
  */
 function BaseStation(size, coordinate) {
   // Split size into width and height
   var q = Math.floor(Math.sqrt(size));
-  this.width = q%2 == 0? q : q+1;
-  this.height = q%2 != 0? q : q+1;
+  this.width = size%2 == 0? q : q+1;
+  this.height = size%2 != 0? q : q+1;
   this.coordinate = coordinate;
-  this.hull = {alive: true, shield: 0};
-  //console.log("q=" + q + " - w=" + this.width + " - h=" + this.height);
+  this.hull = {shield: 0};
+  this.state = {alive: true, lifespan: -1};
 
   this.arrays = [];
   this.nodes = [];
@@ -30,13 +31,14 @@ function BaseStation(size, coordinate) {
     }
   }
   // Central node
-  var centralNode = new StationNode((q%2==0? q-1 : q)/2, (q%2!=0? q-1 : q)/2, this.coordinate);
+  var centralNode = new StationNode((size%2==0? q-1 : q)/2, (size%2!=0? q-1 : q)/2, this.coordinate);
   centralNode.status = STATION_NODE_ROLE_CENTRAL;
     // Hitbox used for the Centrale Node
   centralNode.hitbox = {h: coordinate.h + centralNode.x*STRUCTURE_SPACE, v: coordinate.v+ centralNode.y*STRUCTURE_SPACE,
     width: STRUCTURE_STATION_RADIUS, height: STRUCTURE_STATION_RADIUS, radius: STRUCTURE_STATION_RADIUS,
     type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND
   };
+  console.log(centralNode.x+"x"+centralNode.y);
   this.nodes.push(centralNode);
 
   // Starting with first nodes, create and pile arrays, exclude those that create loop, sort them by weight, pick first to determine nexte node
@@ -56,16 +58,16 @@ function BaseStation(size, coordinate) {
     } else {
       // Do not permit array that pass throught the centralNode
       // Left
-      if(currentNode.x != 0 || (centralNode.x == currentNode.x+0.5 && centralNode.y == currentNode.y))
+      if(currentNode.x != 0 && (centralNode.x != currentNode.x+0.5 || centralNode.y != currentNode.y))
         this.arrays.push(new StationArray(currentNode, this.nodes[currentNode.x+currentNode.y*this.width -1], this.coordinate));
       // Right
-      if(currentNode.x != this.width-1 || (centralNode.x == currentNode.x-0.5 && centralNode.y == currentNode.y))
+      if(currentNode.x != this.width-1 && (centralNode.x != currentNode.x-0.5 || centralNode.y != currentNode.y))
         this.arrays.push(new StationArray(currentNode, this.nodes[currentNode.x+currentNode.y*this.width +1], this.coordinate));
       // Down
-      if(currentNode.y != 0 || (centralNode.x == currentNode.x && centralNode.y == currentNode.y+0.5))
+      if(currentNode.y != 0 && (centralNode.x != currentNode.x || centralNode.y != currentNode.y+0.5))
         this.arrays.push(new StationArray(currentNode, this.nodes[currentNode.x+(currentNode.y -1)*this.width], this.coordinate));
       // Up
-      if(currentNode.y != this.height-1 || (centralNode.x == currentNode.x && centralNode.y == currentNode.y-0.5))
+      if(currentNode.y != this.height-1 && (centralNode.x != currentNode.x || centralNode.y != currentNode.y-0.5))
         this.arrays.push(new StationArray(currentNode, this.nodes[currentNode.x+(currentNode.y +1)*this.width], this.coordinate));
     }
 
@@ -112,8 +114,9 @@ function BaseStation(size, coordinate) {
   this.update = function update() {
     this.nodes.forEach( function update(n) { n.update(); });
     this.arrays.forEach( function update(a) { a.update(); });
-    this.nodes = this.nodes.filter( function stillAlive(n) { return n.hull.alive; });
-    this.arrays = this.arrays.filter( function stillAlive(a) { return a.hull.alive; });
+    this.nodes = this.nodes.filter( stillAlive);
+    this.arrays = this.arrays.filter( stillAlive);
+    this.state.alive = centralNode.state.alive;
   };
 
   this.draw = function draw() {
@@ -127,7 +130,8 @@ function StationArray(linkA, linkB, coordinate) {
   this.nodeB = linkB;
   this.weight = Math.floor(Math.random() * 999);
   this.building = STRUCTURE_COMPONENT_STATE_SETTING;
-  this.hull = {alive: true, shield: 100};
+  this.hull = {shield: 0};
+  this.state = {alive: true, lifespan: -1};
   this.velocity = {h:0, v:0, n:0};
 
   if(this.nodeA.x == this.nodeB.x) {
@@ -147,23 +151,30 @@ function StationArray(linkA, linkB, coordinate) {
   this.nodeB.links.push(this);
 
   this.update = function update() {
-    if((this.nodeA.hull.alive && this.nodeB.hull.alive) == false && this.hull.alive) {
-      this.hull.alive = false;
+    if((this.nodeA.state.alive && this.nodeB.state.alive) == false && this.state.alive) {
+      this.die();
+    }
+    if(!this.state.alive && this.state.lifespan < Date.now()) {
+      this.state.lifespan = 0;
     }
   }
 
   this.draw = function draw() {
     if(this.building == STRUCTURE_COMPONENT_STATE_ALIVE) {
       var context = CANVAS_FOREGROUND.getContext('2d');
-      context.beginPath();
-      context.strokeStyle = "#33CCCC";
-      context.strokeRect(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.width, this.hitbox.height);
-      context.stroke();
+      context.fillStyle = "#33CCCC";
+      context.fillRect(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.width, this.hitbox.height);
     }
   }
 
   this.collide = function collide(other) {
     // Arrays are invincible until nodes are taken off
+  }
+
+  this.die = function die() {
+   this.state.alive = false;
+   this.state.lifespan = Date.now() + STRUCTURE_ANIMATION_DEATHTIME;
+   // Add animation
   }
 }
 
@@ -174,15 +185,27 @@ function StationNode(x, y, coordinate) {
   this.building = STRUCTURE_COMPONENT_STATE_SETTING;
   this.status = STATION_NODE_ROLE_BRANCH;
   this.velocity = {h:0, v:0, n:0};
-  this.hull = {alive: true, shield: 100};
+  this.hull = {shield: 0};
+  this.state = {alive: true, lifespan: -1};
+  this.last = {seen: Date.now(), update: 0};
   this.hitbox = {h: coordinate.h + this.x*STRUCTURE_SPACE, v: coordinate.v + this.y*STRUCTURE_SPACE,
     width: STRUCTURE_STATION_RADIUS, height:STRUCTURE_STATION_RADIUS,
     radius: STRUCTURE_STATION_RADIUS, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
 
   this.update = function update() {
-    this.links = this.links.filter(function stillAlive(a) { return a.hull.alive; });
-    if(this.links.length == 1 && this.status == STATION_NODE_ROLE_BRANCH) {
-      this.hull.alive = false;
+    // Snapeshot all last info
+    this.last.update = Date.now() - this.last.seen;
+
+    /*
+    this.links = this.links.filter(function stillAlive(a) { return a.state.alive && a.state.lifespan == 0; });
+    if(this.state.alive && this.links.length < 2 && this.status == STATION_NODE_ROLE_BRANCH) {
+      this.die();
+    }
+    if(this.state.alive && this.links.length < 1 && this.status == STATION_NODE_ROLE_ANNEX) {
+      this.die();
+    }*/
+    if(!this.state.alive && this.state.lifespan < Date.now()) {
+      this.state.lifespan = 0;
     }
   }
 
@@ -210,11 +233,22 @@ function StationNode(x, y, coordinate) {
     if(this.status == STATION_NODE_ROLE_BRANCH) {
       // Branch nodes are invicible
     } else if(this.status == STATION_NODE_ROLE_ANNEX) {
-      this.hull.shield -= 100;
-      if(this.hull.shield == 0) {
-        this.hull.alive = false;
+      this.state.shield -= 100;
+      if(this.state.shield == 0) {
+        this.die();
+      }
+    } else if(this.status == STATION_NODE_ROLE_CENTRAL) {
+      this.state.shield -= 100;
+      if(this.state.shield == 0) {
+        this.die();
       }
     }
+  }
+
+  this.die = function die() {
+   this.state.alive = false;
+   this.state.lifespan = Date.now() + STRUCTURE_ANIMATION_DEATHTIME;
+   // Add animation
   }
 }
 
@@ -222,14 +256,14 @@ function StationFactory() {
   this.stationList = [];
 
   this.spawn = function() {
-    var coordinate = {h: 300, v:300};
+    var coordinate = {h: 100, v:100};
     var station = new BaseStation(Math.floor(Math.random() * 40 +10), coordinate);
     this.stationList.push(station);
   }
 
   this.update = function update() {
     this.stationList.forEach(function update(s) { s.update() });
-    this.stationList = this.stationList.filter( function stillAlive(s) { return s.hull.alive; });
+    this.stationList = this.stationList.filter( stillAlive);
   }
 
   this.draw = function draw() {
