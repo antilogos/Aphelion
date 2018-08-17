@@ -1,5 +1,5 @@
 /*
- *
+ * Background animation
  */
 function Animation() {
   this.last = {seen: Date.now(), fire: Date.now(), update: 0};
