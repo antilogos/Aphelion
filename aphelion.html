@@ -25,17 +25,29 @@
       }
       var inputListener = new InputListener();
       function init() {
+        document.getElementById("maindiv").addEventListener('contextmenu', function(evt) {
+          evt.preventDefault();
+          inputListener.mouse2HasClicked = new Date();
+          inputListener.mouse2HasRealeased = null;
+        }, true);
         document.getElementById("maindiv").addEventListener('mousemove', function(evt) {
           inputListener.mouseX = evt.offsetX;
           inputListener.mouseY = evt.offsetY;
         }, true);
         document.getElementById("maindiv").addEventListener('mouseup', function(evt) {
-          inputListener.mouseHasRealeased = new Date();
-          inputListener.mouseHasClicked = null;
+          if(evt.button == 0) {
+            inputListener.mouseHasRealeased = new Date();
+            inputListener.mouseHasClicked = null;
+          } if(evt.button == 2) {
+            inputListener.mouse2HasRealeased = new Date();
+            inputListener.mouse2HasClicked = null;
+          }
         }, true);
         document.getElementById("maindiv").addEventListener('mousedown', function(evt) {
-          inputListener.mouseHasClicked = new Date();
-          inputListener.mouseHasRealeased = null;
+          if(evt.button == 0) {
+            inputListener.mouseHasClicked = new Date();
+            inputListener.mouseHasRealeased = null;
+          }
         }, true);
         document.getElementById("maindiv").appendChild(viewportDiv);
         viewportDiv.appendChild(CANVAS_BACKGROUND);

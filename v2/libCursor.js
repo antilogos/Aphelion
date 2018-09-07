@@ -24,6 +24,9 @@ function Cursor() {
   this.weapon = [new WeaponDebug()];
   this.module = [];
 
+  // Right click lock aim
+  this.rightClickLock = {on: false, h: 0, v: 0, last: null};
+
   this.update = function update() {
     // Snapeshot all last info
     this.last.update = Date.now() - this.last.seen;
@@ -83,6 +86,31 @@ function Cursor() {
     this.hitbox.h += (this.velocity.h * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
     this.hitbox.v += (this.velocity.v * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
 
+    // Right click locking
+    if(inputListener.mouse2HasClicked != null) {
+      if(this.rightClickLock.last == inputListener.mouse2HasClicked) {
+        // Nothing has changed
+      } else if(this.rightClickLock.on) {
+        // Desactivate aim locking
+        this.rightClickLock.on = false;
+        this.rightClickLock.last = inputListener.mouse2HasClicked;
+      } else {
+        // Activate aim locking
+        this.rightClickLock.on = true;
+        this.rightClickLock.last = inputListener.mouse2HasClicked;
+        var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
+        // Regulate normal of velocity of projectile, speed ramp up rapidly to 100% within Thrust pixel radius and then slowly to a maximum of 125%
+        var projVelN = Math.min( Math.sqrt(initVelN / THRUST_PIXEL_RADIUS) + 0.25, 1.25);
+        if(initVelN == 0) {
+          this.rightClickLock.h = 0;
+          this.rightClickLock.v = 0;
+        } else {
+          this.rightClickLock.h = (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * projVelN;
+          this.rightClickLock.v = (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * projVelN;
+        }
+      }
+    }
+
 		// Firing
     if(inputListener.mouseHasClicked != null) {
       // check if weapon on cooldown
@@ -90,11 +118,20 @@ function Cursor() {
         // check if overheating
         if(this.heat > this.weapon[0].heat) {
           // Define projectile state
-          var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
-          var mouseVelN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
-          var initVel = initVelN == 0 ? {h:0, v:0} : {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * mouseVelN * 1.8, v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * mouseVelN * 1.8}
-          // Confirm creation of projectile
-          projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
+          if(this.rightClickLock.on) {
+            var initVel = {h: this.rightClickLock.h * this.weapon[0].velocity, v: this.rightClickLock.v * this.weapon[0].velocity}
+            // Confirm creation of projectile
+            projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
+          } else {
+            var initVelN = Math.sqrt(Math.pow((inputListener.mouseX - CANVAS_WIDTH/2),2)+Math.pow((inputListener.mouseY - CANVAS_HEIGHT/2),2));
+            // Regulate normal of velocity of projectile, speed ramp up rapidly to 100% within Thrust pixel radius and then slowly to a maximum of 125%
+            var projVelN = Math.min( Math.sqrt(initVelN / THRUST_PIXEL_RADIUS) + 0.25, 1.25);
+            var initVel = initVelN == 0 ? {h:0, v:0} :
+              {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * projVelN * this.weapon[0].velocity,
+              v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * projVelN * this.weapon[0].velocity};
+            // Confirm creation of projectile
+            projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
+          }
           // Update firing state
           this.heat -= this.weapon[0].heat;
           this.last.fire = Date.now();
