@@ -5,6 +5,7 @@
     <title>APHELION</title>
     <style>
     </style>
+    <script src="v2/dataParts.js" type="text/javascript"></script>
     <script src="v2/libCommon.js" type="text/javascript"></script>
     <script src="v2/libMenu.js" type="text/javascript"></script>
     <script src="v2/libEngine.js" type="text/javascript"></script>
@@ -16,15 +17,24 @@
     <script src="v2/libPasserby.js" type="text/javascript"></script>
     <script src="v2/libStructure.js" type="text/javascript"></script>
     <script src="v2/libAnimation.js" type="text/javascript"></script>
+    <script src="v2/menuMain.js" type="text/javascript"></script>
+    <script src="v2/menuHeadquarter.js" type="text/javascript"></script>
+    <script src="v2/menuHangar.js" type="text/javascript"></script>
+    <script src="v2/menuResearch.js" type="text/javascript"></script>
+    <script src="v2/menuOption.js" type="text/javascript"></script>
     <script>
       function InputListener() {
         this.mouseX;
         this.mouseY;
         this.mouseHasClicked;
         this.mouseHasRealeased;
+        this.keyup = [];
       }
       var inputListener = new InputListener();
       function init() {
+        document.onkeyup = function(evt) {
+          inputListener.keyup.unshift(evt.keyCode);
+        }
         document.getElementById("maindiv").addEventListener('contextmenu', function(evt) {
           evt.preventDefault();
           inputListener.mouse2HasClicked = new Date();
@@ -83,48 +93,38 @@
           stationFactory.draw();
           //DEBUG
           quadTree.draw();
+
+          if(inputListener.keyup.indexOf(27) > -1) {
+            screenStack.unshift(menuOption);
+          }
+          inputListener.keyup = [];
         }
       }
-      var menu4 = new MainLoop();
+      var menuField = new MainLoop();
     </script>
     <script>
       var screenStack = [];
-
-      var menu1 = new Menu();
-      var menu2 = new Menu();
-      var menu3 = new Menu();
-      var button_1_1 = new Button("To Menu 2", 50, 50, 100, 30, function toMenu2() { screenStack.unshift(menu2); });
-      menu1.button.push(button_1_1);
-      var button_1_2 = new Button("To Menu 3", 450, 50, 100, 30, function toMenu3() { screenStack.unshift(menu3); });
-      menu1.button.push(button_1_2);
-      var button_1_3 = new Button("To Menu 4", 250, 250, 100, 30, function toMenu3() { screenStack.unshift(menu4); });
-      menu1.button.push(button_1_3);
-      var button_2_back = new Button("To Menu 1", 50, 50, 100, 30, function toMenu2() { screenStack.shift(); });
-      menu2.button.push(button_2_back);
-      var button_3_back = new Button("To Menu 1", 450, 50, 100, 30, function toMenu2() { screenStack.shift(); });
-      menu3.button.push(button_3_back);
-      screenStack.unshift(menu1);
+      screenStack.unshift(menuMain);
 
       function animate() {
-
-       screenStack[0].draw();
-     	 requestAnimFrame( animate );
-     }
-     /**
+        screenStack[0].draw();
+        requestAnimFrame( animate );
+      }
+      /**
       * requestAnim shim layer by Paul Irish
       * Finds the first API that works to optimize the animation loop,
       * otherwise defaults to setTimeout().
       */
-     window.requestAnimFrame = (function(){
-     	return  window.requestAnimationFrame   ||
-     			window.webkitRequestAnimationFrame ||
-     			window.mozRequestAnimationFrame    ||
-     			window.oRequestAnimationFrame      ||
-     			window.msRequestAnimationFrame     ||
-     			function(/* function */ callback, /* DOMElement */ element){
-     				window.setTimeout(callback, 1000 / 60);
-     			};
-     })();
+      window.requestAnimFrame = (function(){
+        return  window.requestAnimationFrame   ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function(/* function */ callback, /* DOMElement */ element){
+          window.setTimeout(callback, 1000 / 60);
+        };
+      })();
     </script>
   </head>
     <body onload="init()">

@@ -19,8 +19,9 @@ function Cursor() {
   this.shield = 0;
 
   // Configuration of the Cursor
-  this.hull = {velocity: 100, shieldCapacity: 100, heatTolerance: 100, cargo: 100, absorption: 0, width: 3, height: 3, radius : 3};
-  this.engine = {thrust: 100, repair: 100, dissipation: 100, compartment: 100};
+  this.hull = HULL_CANARY_MKO;
+  this.engine = ENGINE_HELIUM_GENO;
+  this.generator = SHIELD_PANSY_1A;
   this.weapon = [new WeaponDebug()];
   this.module = [];
 

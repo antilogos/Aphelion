@@ -144,7 +144,7 @@ function Quadtree(level, h, v) {
 
   this.pickSubElements = function pickSubElements() {
     if(this.nwChild != null) {
-      return this.nwChild.current.elements.concat(this.neChild.current.elements, this.swChild.current.elements, this.swChild.current.elements,
+      return this.nwChild.current.elements.concat(this.neChild.current.elements, this.swChild.current.elements, this.seChild.current.elements,
         this.nwChild.pickSubElements(), this.neChild.pickSubElements(), this.swChild.pickSubElements(), this.seChild.pickSubElements());
     } else {
       return [];

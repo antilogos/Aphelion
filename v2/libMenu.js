@@ -57,7 +57,7 @@ function Menu() {
   this.draw = function draw() {
     var context = CANVAS_MENU.getContext('2d');
     context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    this.button.forEach(function draw(b) { b.draw() });
+    this.button.forEach(function draw(b) { b.draw(); });
     // Display cursor
     context.beginPath();
     context.strokeStyle = '#009900';
