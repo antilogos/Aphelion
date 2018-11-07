@@ -15,17 +15,34 @@ var buttonListLayout_hangar_hull = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MAR
   {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
 
-var buttonList_hangar_hull = HULL_LIST.filter(function techlevelReq(hull) { return hull.techlevel == 1;
-}).map( function(element, index) {
-  return [element, buttonListLayout_hangar_hull[index]];
-}).forEach( function hullButton(hullAndLayout) {
-  var hullData = hullAndLayout[0];
-  var layoutData = hullAndLayout[1];
-  var b = new Button(hullData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectHull() {
-    cursor.hull = hullData;
+var buttonListResearch_hull = [];
+
+// Check technology requirement and add button to menu
+var check_buttonList_hangar_hull = function() {
+  // Remove the button
+  buttonListResearch_hull.forEach( function removeOld(b) {
+    menuHangar.button.splice(menuHangar.button.indexOf(b), 1);
   });
-  menuHangar.button.push(b);
-});
+  buttonListResearch_hull = [];
+  // Add the button with the correct requirement
+  topOfResearch(HULL_LIST.filter(function techlevelReq(hull) {
+    return isUnlocked(hull);
+  })).map( function(element, index) {
+    return [element, buttonListLayout_hangar_hull[index]];
+  }).forEach( function hullButton(hullAndLayout) {
+    var hullData = hullAndLayout[0];
+    var layoutData = hullAndLayout[1];
+    var b = new Button(hullData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectHull() {
+      cursor.hull = hullData;
+    });
+    buttonListResearch_hull.push(b);
+  });
+  // Add the button
+  buttonListResearch_hull.forEach( function inserNew(b) {
+    menuHangar.button.push(b);
+  });
+}
+check_buttonList_hangar_hull();
 
 var buttonListLayout_hangar_engine = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
@@ -36,17 +53,34 @@ var buttonListLayout_hangar_engine = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+M
   {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
 
-var buttonList_hangar_engine = ENGINE_LIST.filter(function techlevelReq(engine) { return engine.techlevel == 1;
-}).map( function(element, index) {
-  return [element, buttonListLayout_hangar_engine[index]];
-}).forEach( function engineButton(engineAndLayout) {
-  var engineData = engineAndLayout[0];
-  var layoutData = engineAndLayout[1];
-  var b = new Button(engineData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectEngine() {
-    cursor.engine = engineData;
+var buttonListResearch_engine = [];
+
+// Check technology requirement and add button to menu
+var check_buttonList_hangar_engine = function() {
+  // Remove the button
+  buttonListResearch_engine.forEach( function removeOld(b) {
+    menuHangar.button.splice(menuHangar.button.indexOf(b), 1);
   });
-  menuHangar.button.push(b);
-});
+  buttonListResearch_engine = [];
+  // Add the button with the correct requirement
+  topOfResearch(ENGINE_LIST.filter(function techlevelReq(engine) {
+    return isUnlocked(engine);
+  })).map( function(element, index) {
+    return [element, buttonListLayout_hangar_engine[index]];
+  }).forEach( function engineButton(engineAndLayout) {
+    var engineData = engineAndLayout[0];
+    var layoutData = engineAndLayout[1];
+    var b = new Button(engineData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectEngine() {
+      cursor.engine = engineData;
+    });
+    buttonListResearch_engine.push(b);
+  });
+  // Add the button
+  buttonListResearch_engine.forEach( function inserNew(b) {
+    menuHangar.button.push(b);
+  });
+}
+check_buttonList_hangar_engine();
 
 var buttonListLayout_hangar_shield = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
@@ -57,21 +91,39 @@ var buttonListLayout_hangar_shield = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+M
   {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
 
-var buttonList_hangar_shield = SHIELD_LIST.filter(function techlevelReq(shield) { return shield.techlevel == 1;
-}).map( function(element, index) {
-  return [element, buttonListLayout_hangar_shield[index]];
-}).forEach( function shieldButton(shieldAndLayout) {
-  var shieldData = shieldAndLayout[0];
-  var layoutData = shieldAndLayout[1];
-  var b = new Button(shieldData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectShield() {
-    cursor.generator = shieldData;
+var buttonListResearch_shield = [];
+
+// Check technology requirement and add button to menu
+var check_buttonList_hangar_shield = function() {
+  // Remove the button
+  buttonListResearch_shield.forEach( function removeOld(b) {
+    menuHangar.button.splice(menuHangar.button.indexOf(b), 1);
   });
-  menuHangar.button.push(b);
-});
+  buttonListResearch_shield = [];
+  // Add the button with the correct requirement
+  topOfResearch(SHIELD_LIST.filter(function techlevelReq(shield) {
+    return isUnlocked(shield);
+  })).map( function(element, index) {
+    return [element, buttonListLayout_hangar_shield[index]];
+  }).forEach( function shieldButton(shieldAndLayout) {
+    var shieldData = shieldAndLayout[0];
+    var layoutData = shieldAndLayout[1];
+    var b = new Button(shieldData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectShield() {
+      cursor.generator = shieldData;
+    });
+    buttonListResearch_shield.push(b);
+  });
+  // Add the button
+  buttonListResearch_shield.forEach( function inserNew(b) {
+    menuHangar.button.push(b);
+  });
+}
+check_buttonList_hangar_shield();
 
 var button_hangar_display = new Button("", CANVAS_WIDTH/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT-MARGIN_TOP*2, null);
 button_hangar_display.context = CANVAS_MENU.getContext('2d');
 button_hangar_display.draw = function draw() {
+
       this.context.clearRect(this.x, this.y, this.width, this.height);
       this.context.beginPath();
       this.context.lineWidth = 2;
@@ -111,7 +163,7 @@ button_hangar_display.draw = function draw() {
       this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+11.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*(cursor.hull.shieldCapacity*cursor.generator.capacity/100)/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
 
       this.context.fillStyle = "black";
-      this.context.fillText("Shield absorption: " + (cursor.hull.absorption*cursor.generator.absorption*100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13*GLOBAL_TEXT_SIZE);
+      this.context.fillText("Shield absorption: " + (cursor.hull.absorption*cursor.generator.absorption/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13*GLOBAL_TEXT_SIZE);
       this.context.fillStyle = gradient;
       this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*(cursor.hull.absorption*cursor.generator.absorption/100)/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
 
