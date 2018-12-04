@@ -31,11 +31,21 @@
         this.mouseHasRealeased;
         this.keyup = [];
       }
+      var lastIddle = new Date();
+      var lastActive = new Date();
       var inputListener = new InputListener();
       function init() {
+        document.addEventListener("visibilitychange", function() {
+          if(document.hidden) {
+            lastIddle = new Date();
+            lastActive = -1;
+          } else {
+            lastActive = new Date();
+          }
+        }, false);
         document.onkeyup = function(evt) {
           inputListener.keyup.unshift(evt.keyCode);
-        }
+        };
         document.getElementById("maindiv").addEventListener('contextmenu', function(evt) {
           evt.preventDefault();
           inputListener.mouse2HasClicked = new Date();

@@ -30,8 +30,7 @@ function Cursor() {
 
   this.update = function update() {
     // Snapeshot all last info
-    this.last.update = Date.now() - this.last.seen;
-    this.last.seen = Date.now();
+    timeUpdate(this);
     this.last.h = this.hitbox.h;
     this.last.v = this.hitbox.v;
     // Make the acceleration not suffer from framerate drop, = Frequency of refresh

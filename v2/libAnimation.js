@@ -13,8 +13,7 @@ function Animation() {
       && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
       && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
       && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
-      this.last.update = Date.now() - this.last.seen;
-      this.last.seen += this.last.update;
+      timeUpdate(this);
 
       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;

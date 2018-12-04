@@ -14,14 +14,13 @@ function Passerby() {
   this.target = cursor;
 
   this.update = function update() {
-    checkDeath(this);
     // Only care about in screen passerby
     if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
       && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
       && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
       && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
-      this.last.update = Date.now() - this.last.seen;
-      this.last.seen += this.last.update;
+      timeUpdate(this);
+      checkDeath(this);
 
       // Manage movement & firing
       if(this.behaviour.move && this.state.alive) this.behaviour.move();
@@ -41,7 +40,7 @@ function Passerby() {
       var canvasFg = CANVAS_FOREGROUND.getContext('2d');
       canvasFg.beginPath();
       if(this.state.lifespan > 0) {
-        canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius * (Math.max(0,this.state.lifespan - Date.now()) / PASSERBY_ANIMATION_DEATHTIME), 0, 2 * Math.PI, false);
+        canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius * (Math.max(0,this.state.lifespan) / PASSERBY_ANIMATION_DEATHTIME), 0, 2 * Math.PI, false);
       } else {
         canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
       }
@@ -68,7 +67,7 @@ function Passerby() {
 
   this.die = function die() {
     this.state.alive = false;
-    this.state.lifespan = Date.now() + PASSERBY_ANIMATION_DEATHTIME;
+    this.state.lifespan = PASSERBY_ANIMATION_DEATHTIME;
     // Add animation
   }
 }

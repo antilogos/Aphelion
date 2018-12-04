@@ -5,7 +5,7 @@ var MARGIN_TOP=15;
 var MARGIN_LEFT=5;
 var HEXAGON_SIZE=30;
 
-var button_Research_back = new Button("Back", 450, 350, 100, 30, function toBack() {
+var button_Research_back = new Button("Back", 512, 340, 80, 28, function toBack() {
   CANVAS_BACKGROUND.getContext('2d').clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   check_buttonList_hangar_hull();
   check_buttonList_hangar_engine();
@@ -14,7 +14,7 @@ var button_Research_back = new Button("Back", 450, 350, 100, 30, function toBack
 });
 menuResearch.button.push(button_Research_back);
 
-var button_Research_launch = new Button("Develop", 450, 265, 100, 30, function developResearch() {
+var button_Research_launch = new Button("Develop", 410, 340, 80, 28, function developResearch() {
   CurrentResearchLevel[current_research_node.code] = 1;
 });
 

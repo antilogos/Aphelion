@@ -3,33 +3,31 @@ PROJECTILE_ANIMATION_DEATHTIME = 50;
  *
  */
 function Projectile(weapon) {
-  this.lastseen = Date.now();
-  this.updateTime = 0;
   this.behaviour = new DefaultBehaviour(this);
   this.hitbox = {h: 0, v: 0, width: 2, height: 2, radius: 1, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = {target: 0, damage: 100};
-  this.state = {alive: true, lifespan: Date.now() + 6000};
+  this.state = {alive: true, lifespan: 6000};
+  this.last = {seen: Date.now(), update: 0};
 
   this.update = function update() {
      // Delete old Projectile
-     if(this.state.alive && this.state.lifespan < Date.now()) {
+     if(this.state.alive && this.state.lifespan <= 0) {
        this.die();
      }
-     checkDeath(this);
      // Only care about in screen
      if(this.hitbox.h - cursor.hitbox.h > - CANVAS_WIDTH - this.hitbox.width
        && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
        && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
        && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
-       this.updateTime = Date.now() - this.lastseen;
-       this.lastseen += this.updateTime;
+       timeUpdate(this);
+       checkDeath(this);
 
        // Manage movement
        if(this.behaviour.move && this.state.alive) this.behaviour.move();
 
-       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
-       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.updateTime;
+       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
+       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
      }
   }
 
@@ -56,7 +54,7 @@ function Projectile(weapon) {
 
  this.die = function die() {
    this.state.alive = false;
-   this.state.lifespan = Date.now() + PROJECTILE_ANIMATION_DEATHTIME;
+   this.state.lifespan = PROJECTILE_ANIMATION_DEATHTIME;
    // Add animation
  }
 }

@@ -20,6 +20,7 @@ function BaseStation(size, coordinate) {
   this.coordinate = coordinate;
   this.hull = {shield: 0};
   this.state = {alive: true, lifespan: -1};
+  this.last = {seen: Date.now(), update: 0};
 
   this.arrays = [];
   this.nodes = [];
@@ -133,6 +134,7 @@ function StationArray(linkA, linkB, coordinate) {
   this.state = {alive: true, lifespan: -1};
   this.velocity = {h:0, v:0, n:0};
   this.propagateFullDestruction = false;
+  this.last = {seen: Date.now(), update: 0};
 
   if(this.nodeA.x == this.nodeB.x) {
     // Orientation verticale
@@ -151,6 +153,7 @@ function StationArray(linkA, linkB, coordinate) {
   this.nodeB.links.push(this);
 
   this.update = function update() {
+    timeUpdate(this);
     checkDeath(this);
     if(!stillAlive(this)) {
       // Propagate destruction from array to nodes
@@ -180,7 +183,7 @@ function StationArray(linkA, linkB, coordinate) {
 
   this.die = function die() {
    this.state.alive = false;
-   this.state.lifespan = Date.now() + STRUCTURE_ANIMATION_DEATHTIME;
+   this.state.lifespan = STRUCTURE_ANIMATION_DEATHTIME;
    // Add animation
   }
 }
@@ -203,7 +206,7 @@ function StationNode(x, y, coordinate) {
   this.update = function update() {
     checkDeath(this);
     // Snapeshot all last info
-    this.last.update = Date.now() - this.last.seen;
+    timeUpdate(this);
 
     this.links = this.links.filter( stillAlive);
   }
@@ -246,7 +249,7 @@ function StationNode(x, y, coordinate) {
 
   this.die = function die() {
    this.state.alive = false;
-   this.state.lifespan = Date.now();
+   this.state.lifespan = 0;
    // Add animation
 
    // PropagateDestruction from node to arrays
