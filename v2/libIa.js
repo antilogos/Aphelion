@@ -13,14 +13,15 @@ function ChasingBehaviour(object) {
 
   this.move = function move() {
     // Target vector normalize with velocity
-    var diffX = object.target.hitbox.h - this.object.hitbox.h;
-    var diffY = object.target.hitbox.v - this.object.hitbox.v;
+    var diffX = this.object.target.hitbox.h - this.object.hitbox.h;
+    var diffY = this.object.target.hitbox.v - this.object.hitbox.v;
     // Target trajectory
     var diffN = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
     var diffH = diffN == 0 ? 0 : diffX / diffN * this.object.velocity.n;
     var diffV = diffN == 0 ? 0 : diffY / diffN * this.object.velocity.n;
     // Displacement vector between target and anticipated movement
     var diffT = this.object.last.updateTime;
+    /*
     var diffA = (diffH - this.object.last.dh - this.object.last.h) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
     var diffB = (diffV - this.object.last.dv - this.object.last.v) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
     var diffVelH = diffA + this.object.last.dh + this.object.last.h;
@@ -36,6 +37,12 @@ function ChasingBehaviour(object) {
     // Change velocity
     this.object.velocity.h = diffVelH / TURNOVER_SPEED_FACTOR_MS;
     this.object.velocity.v = diffVelV / TURNOVER_SPEED_FACTOR_MS;
+    */
+    // TODO smooth turn
+    this.object.last.dh = this.object.velocity.h;
+    this.object.last.dv = this.object.velocity.v;
+    this.object.velocity.h = -diffH;
+    this.object.velocity.v = -diffV;
   }
 }
 
