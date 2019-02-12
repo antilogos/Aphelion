@@ -1,16 +1,18 @@
 function stillAlive(o) { return o.state.alive || o.state.lifespan != 0; };
 function checkDeath(o) { o.state.lifespan -= Math.min(o.last.update, o.state.lifespan); };
+
+/* Get an object and update it with the time kept in inputListener, to remove time when document is iddle or field is iddle */
 function timeUpdate(o) {
-  if(lastActive == -1) {
+  if(inputListener.lastActive == -1) {
     console.log("ERROR - updating while not active")
-  } else if(o.last.seen > lastActive) {
+  } else if(o.last.seen > inputListener.lastActive) {
     o.last.update = Date.now() - o.last.seen;
     o.last.seen += o.last.update;
   } else {
-    o.last.update = Date.now() - o.last.seen - (lastActive - lastIddle);
-    o.last.seen += o.last.update + (lastActive - lastIddle);
+    o.last.update = Date.now() - o.last.seen - (inputListener.lastActive - inputListener.lastIddle);
+    o.last.seen += o.last.update + (inputListener.lastActive - inputListener.lastIddle);
   }
- }
+}
 
 function textWrapping(context, text, x, y, maxWidth, lineHeight) {
   text.split('\n').forEach(function lineDelimiter(paragraph) {

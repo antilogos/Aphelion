@@ -4,7 +4,7 @@ PASSERBY_ANIMATION_DEATHTIME = 600;
  *
  */
 function Passerby() {
-  this.last = {seen: Date.now(), fire: Date.now(), update: 0};
+  this.last = {seen: Date.now(), fire: Date.now(), update: 0, dh: 0, df: 0};
   this.behaviour = new ChasingBehaviour(this);
   this.hitbox = {h: 0, v: 0, width: 14, height: 14, radius: 7, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};

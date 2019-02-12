@@ -8,7 +8,7 @@ function Projectile(weapon) {
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = {target: 0, damage: 100};
   this.state = {alive: true, lifespan: 6000};
-  this.last = {seen: Date.now(), update: 0};
+  this.last = {seen: Date.now(), update: 0, dh: 0, df: 0};
 
   this.update = function update() {
      // Delete old Projectile

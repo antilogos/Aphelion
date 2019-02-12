@@ -1,8 +1,7 @@
-
-// Translate distance of mouse in pixel to velocity : smooth velocity around 0.3,
 var THRUST_HEELOVER_RATIO = 1 / 400;
 var HEAT_COOLDOWN_RATIO = 1 / 6000;
 var SHIELD_COOLDOWN_RATIO = 1 / 6000;
+// Translate distance of mouse in pixel to velocity : smooth velocity around 0.3
 var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
 
 /*
@@ -14,7 +13,7 @@ function Cursor() {
   // Information to display
   this.hitbox = { h: 0, v: 0, width: 10, height: 10, radius: 5, type: COLLISION_MASK_CURSOR, shape:COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n: 0};
-  this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0};
+  this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0, dh: 0, df: 0};
   this.heat = 0;
   this.shield = 0;
 
@@ -82,6 +81,9 @@ function Cursor() {
       // inertiacore is always at max speed
     }
 
+    // Save new speed
+    this.last.dh = this.velocity.h;
+    this.last.dv = this.velocity.v;
     // Apply Movement
     this.hitbox.h += (this.velocity.h * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
     this.hitbox.v += (this.velocity.v * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);

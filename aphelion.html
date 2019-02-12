@@ -23,6 +23,7 @@
     <script src="v2/menuHangar.js" type="text/javascript"></script>
     <script src="v2/menuResearch.js" type="text/javascript"></script>
     <script src="v2/menuOption.js" type="text/javascript"></script>
+    <script src="v2/menuField.js" type="text/javascript"></script>
     <script>
       function InputListener() {
         this.mouseX;
@@ -30,17 +31,18 @@
         this.mouseHasClicked;
         this.mouseHasRealeased;
         this.keyup = [];
+        this.lastIddle = Date.now();
+        this.lastActive = Date.now();
       }
-      var lastIddle = new Date();
-      var lastActive = new Date();
       var inputListener = new InputListener();
       function init() {
         document.addEventListener("visibilitychange", function() {
           if(document.hidden) {
-            lastIddle = new Date();
-            lastActive = -1;
+            inputListener.lastIddle = Date.now();
+            inputListener.lastActive = -1;
+            if(screenStack[0] == menuField) screenStack.unshift(menuOption);
           } else {
-            lastActive = new Date();
+            inputListener.lastActive = Date.now();
           }
         }, false);
         document.onkeyup = function(evt) {
@@ -48,7 +50,7 @@
         };
         document.getElementById("maindiv").addEventListener('contextmenu', function(evt) {
           evt.preventDefault();
-          inputListener.mouse2HasClicked = new Date();
+          inputListener.mouse2HasClicked = Date.now();
           inputListener.mouse2HasRealeased = null;
         }, true);
         document.getElementById("maindiv").addEventListener('mousemove', function(evt) {
@@ -57,16 +59,16 @@
         }, true);
         document.getElementById("maindiv").addEventListener('mouseup', function(evt) {
           if(evt.button == 0) {
-            inputListener.mouseHasRealeased = new Date();
+            inputListener.mouseHasRealeased = Date.now();
             inputListener.mouseHasClicked = null;
           } if(evt.button == 2) {
-            inputListener.mouse2HasRealeased = new Date();
+            inputListener.mouse2HasRealeased = Date.now();
             inputListener.mouse2HasClicked = null;
           }
         }, true);
         document.getElementById("maindiv").addEventListener('mousedown', function(evt) {
           if(evt.button == 0) {
-            inputListener.mouseHasClicked = new Date();
+            inputListener.mouseHasClicked = Date.now();
             inputListener.mouseHasRealeased = null;
           }
         }, true);
@@ -79,46 +81,16 @@
       }
     </script>
     <script>
-      var cursor = new Cursor();
-      var background = new Background();
-      function MainLoop() {
-        this.button = [];
-        this.draw = function draw() {
-          CANVAS_MENU.getContext('2d').clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-          this.button.forEach(function draw(b) { b.draw() });
-
-          // Manage Logic
-          cursor.update();
-          background.update();
-          passerbyFactory.update();
-          projectileFactory.update();
-          quadTree.update();
-          animationFactory.update();
-          stationFactory.update();
-          // Manage Display
-          cursor.draw();
-          background.draw();
-          passerbyFactory.draw();
-          projectileFactory.draw();
-          animationFactory.draw();
-          stationFactory.draw();
-          //DEBUG
-          quadTree.draw();
-
-          if(inputListener.keyup.indexOf(27) > -1) {
-            screenStack.unshift(menuOption);
-          }
-          inputListener.keyup = [];
-        }
-      }
-      var menuField = new MainLoop();
-    </script>
-    <script>
       var screenStack = [];
       screenStack.unshift(menuMain);
 
       function animate() {
         screenStack[0].draw();
+        if(screenStack.length > 1) {
+          for (var i = 1; i < screenStack.length; i++) {
+            if(screenStack[i].iddle != null) screenStack[i].iddle();
+          }
+        }
         requestAnimFrame( animate );
       }
       /**

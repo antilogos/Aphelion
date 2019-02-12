@@ -9,3 +9,7 @@ var button_Main_Research = new Button("To Research", 450, 50, 100, 30, function 
 menuMain.button.push(button_Main_Research);
 var button_Main_Field = new Button("To Field", 250, 250, 100, 30, function toField() { screenStack.unshift(menuField); });
 menuMain.button.push(button_Main_Field);
+
+/* Initialisation of permanent and global objects */
+
+var cursor = new Cursor();
