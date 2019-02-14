@@ -7,22 +7,9 @@ function MainLoop() {
   this.button = [];
 
   this.draw = function draw() {
-    // Get focus back
-    if(!document.hidden && inputListener.lastActive == -1) {
-      console.log("get Focus back");
-      inputListener.lastActive = Date.now();
-    }
     CANVAS_MENU.getContext('2d').clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.button.forEach(function draw(b) { b.draw() });
 
-    // Manage Logic
-    cursor.update();
-    background.update();
-    passerbyFactory.update();
-    projectileFactory.update();
-    quadTree.update();
-    animationFactory.update();
-    stationFactory.update();
     // Manage Display
     cursor.draw();
     background.draw();
@@ -33,6 +20,15 @@ function MainLoop() {
     //DEBUG
     quadTree.draw();
 
+    // Manage Logic
+    cursor.update();
+    background.update();
+    passerbyFactory.update();
+    projectileFactory.update();
+    quadTree.update();
+    animationFactory.update();
+    stationFactory.update();
+
     if(inputListener.keyup.indexOf(27) > -1) {
       screenStack.unshift(menuOption);
     }
@@ -40,10 +36,10 @@ function MainLoop() {
   }
 
   this.iddle = function iddle() {
-    if(inputListener.lastActive != -1) {
-      console.log("losing Focus");
-      inputListener.lastIddle = new Date();
-      inputListener.lastActive = -1;
-    }
+    cursor.iddle();
+    passerbyFactory.iddle();
+    projectileFactory.iddle();
+    animationFactory.iddle();
+    stationFactory.iddle();
   }
 }

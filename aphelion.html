@@ -25,24 +25,12 @@
     <script src="v2/menuOption.js" type="text/javascript"></script>
     <script src="v2/menuField.js" type="text/javascript"></script>
     <script>
-      function InputListener() {
-        this.mouseX;
-        this.mouseY;
-        this.mouseHasClicked;
-        this.mouseHasRealeased;
-        this.keyup = [];
-        this.lastIddle = Date.now();
-        this.lastActive = Date.now();
-      }
       var inputListener = new InputListener();
+      var timeKeeper = new TimeKeeper();
       function init() {
         document.addEventListener("visibilitychange", function() {
           if(document.hidden) {
-            inputListener.lastIddle = Date.now();
-            inputListener.lastActive = -1;
             if(screenStack[0] == menuField) screenStack.unshift(menuOption);
-          } else {
-            inputListener.lastActive = Date.now();
           }
         }, false);
         document.onkeyup = function(evt) {

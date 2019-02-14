@@ -20,7 +20,7 @@ function BaseStation(size, coordinate) {
   this.coordinate = coordinate;
   this.hull = {shield: 0};
   this.state = {alive: true, lifespan: -1};
-  this.last = {seen: Date.now(), update: 0};
+  this.timeKeeper = new TimeKeeper();
 
   this.arrays = [];
   this.nodes = [];
@@ -112,6 +112,7 @@ function BaseStation(size, coordinate) {
   this.build(centralNode);
 
   this.update = function update() {
+    this.timeKeeper.onUpdate();
     this.nodes.forEach( function update(n) { n.update(); });
     this.arrays.forEach( function update(a) { a.update(); });
     this.nodes = this.nodes.filter( stillAlive);
@@ -120,8 +121,15 @@ function BaseStation(size, coordinate) {
   };
 
   this.draw = function draw() {
+    this.timeKeeper.onDraw();
     this.nodes.forEach(function draw(n) { n.draw(); });
     this.arrays.forEach(function draw(a) { a.draw(); });
+  }
+
+  this.iddle = function iddle() {
+    this.timeKeeper.onIddle();
+    this.nodes.forEach(function iddle(n) { n.iddle(); });
+    this.arrays.forEach(function iddle(a) { a.iddle(); });
   }
 }
 
@@ -134,7 +142,7 @@ function StationArray(linkA, linkB, coordinate) {
   this.state = {alive: true, lifespan: -1};
   this.velocity = {h:0, v:0, n:0};
   this.propagateFullDestruction = false;
-  this.last = {seen: Date.now(), update: 0};
+  this.timeKeeper = new TimeKeeper();
 
   if(this.nodeA.x == this.nodeB.x) {
     // Orientation verticale
@@ -153,7 +161,7 @@ function StationArray(linkA, linkB, coordinate) {
   this.nodeB.links.push(this);
 
   this.update = function update() {
-    timeUpdate(this);
+    this.timeKeeper.onUpdate();
     checkDeath(this);
     if(!stillAlive(this)) {
       // Propagate destruction from array to nodes
@@ -170,6 +178,7 @@ function StationArray(linkA, linkB, coordinate) {
 
   this.draw = function draw() {
     if(this.building == STRUCTURE_COMPONENT_STATE_ALIVE) {
+      this.timeKeeper.onDraw();
       var context = CANVAS_FOREGROUND.getContext('2d');
       context.fillStyle = "#33CCCC";
       if(!this.state.alive) context.fillStyle = "#333333";
@@ -186,6 +195,10 @@ function StationArray(linkA, linkB, coordinate) {
    this.state.lifespan = STRUCTURE_ANIMATION_DEATHTIME;
    // Add animation
   }
+
+  this.iddle = function iddle() {
+    this.timeKeeper.onIddle();
+  }
 }
 
 function StationNode(x, y, coordinate) {
@@ -197,7 +210,7 @@ function StationNode(x, y, coordinate) {
   this.velocity = {h:0, v:0, n:0};
   this.hull = {shield: 0};
   this.state = {alive: true, lifespan: -1};
-  this.last = {seen: Date.now(), update: 0};
+  this.timeKeeper = new TimeKeeper();
   this.hitbox = {h: coordinate.h + this.x*STRUCTURE_SPACE, v: coordinate.v + this.y*STRUCTURE_SPACE,
     width: STRUCTURE_STATION_RADIUS, height:STRUCTURE_STATION_RADIUS,
     radius: STRUCTURE_STATION_RADIUS, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
@@ -206,7 +219,7 @@ function StationNode(x, y, coordinate) {
   this.update = function update() {
     checkDeath(this);
     // Snapeshot all last info
-    timeUpdate(this);
+    this.timeKeeper.onUpdate();
 
     this.links = this.links.filter( stillAlive);
   }
@@ -219,6 +232,7 @@ function StationNode(x, y, coordinate) {
       && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height)
         {
         // Draw
+        this.timeKeeper.onDraw();
         var canvasFg = CANVAS_FOREGROUND.getContext('2d');
         canvasFg.beginPath();
         canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
@@ -282,6 +296,10 @@ function StationNode(x, y, coordinate) {
       this.die();
     }
   }
+
+  this.iddle = function iddle() {
+    this.timeKeeper.onIddle();
+  }
 }
 
 function StationFactory() {
@@ -301,6 +319,10 @@ function StationFactory() {
   this.draw = function draw() {
     this.stationList.forEach(function draw(s) { s.draw() });
     if(this.stationList.length == 0) this.spawn();
+  }
+
+  this.iddle = function iddle() {
+    this.stationList.forEach(function iddle(s) { s.iddle() });
   }
 }
 

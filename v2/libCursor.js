@@ -13,7 +13,8 @@ function Cursor() {
   // Information to display
   this.hitbox = { h: 0, v: 0, width: 10, height: 10, radius: 5, type: COLLISION_MASK_CURSOR, shape:COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n: 0};
-  this.last = {seen: Date.now(), update: 0, fire: 0, h: 0, v: 0, dh: 0, df: 0};
+  this.last = {fire: 0, h: 0, v: 0, dh: 0, df: 0};
+  this.timeKeeper = new TimeKeeper();
   this.heat = 0;
   this.shield = 0;
 
@@ -29,11 +30,12 @@ function Cursor() {
 
   this.update = function update() {
     // Snapeshot all last info
-    timeUpdate(this);
+    this.timeKeeper.onUpdate();
+    
     this.last.h = this.hitbox.h;
     this.last.v = this.hitbox.v;
     // Make the acceleration not suffer from framerate drop, = Frequency of refresh
-    var latencyExpectation = Math.min(this.last.update/60,1);
+    var latencyExpectation = Math.min(this.timeKeeper.update/60,1);
     // Time for the thrust to make a complete turn back, = Thrust over time over timeToTurn
     var thrustingTime = this.engine.thrust * latencyExpectation * THRUST_HEELOVER_RATIO;
 
@@ -85,8 +87,8 @@ function Cursor() {
     this.last.dh = this.velocity.h;
     this.last.dv = this.velocity.v;
     // Apply Movement
-    this.hitbox.h += (this.velocity.h * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
-    this.hitbox.v += (this.velocity.v * this.last.update * ENGINE_TIME_TO_PIXEL_CELERITY);
+    this.hitbox.h += (this.velocity.h * this.timeKeeper.update * ENGINE_TIME_TO_PIXEL_CELERITY);
+    this.hitbox.v += (this.velocity.v * this.timeKeeper.update * ENGINE_TIME_TO_PIXEL_CELERITY);
 
     // Right click locking
     if(inputListener.mouse2HasClicked != null) {
@@ -116,7 +118,7 @@ function Cursor() {
 		// Firing
     if(inputListener.mouseHasClicked != null) {
       // check if weapon on cooldown
-      if(this.last.seen - this.last.fire > 1000/this.weapon[0].fireRate) {
+      if(this.timeKeeper.seen - this.last.fire > 1000/this.weapon[0].fireRate) {
         // check if overheating
         if(this.heat > this.weapon[0].heat) {
           // Define projectile state
@@ -142,12 +144,12 @@ function Cursor() {
     }
     // Heat dissipation
 		if(this.heat < this.hull.heatTolerance) {
-			this.heat = Math.min(this.heat + this.engine.dissipation * this.last.update * HEAT_COOLDOWN_RATIO, this.hull.heatTolerance);
+			this.heat = Math.min(this.heat + this.engine.dissipation * this.timeKeeper.update * HEAT_COOLDOWN_RATIO, this.hull.heatTolerance);
 		}
 
 		// Shield
 		if(this.shield < this.hull.shieldCapacity) {
-			this.shield = Math.min(this.shield + this.engine.repair * this.last.update * HEAT_COOLDOWN_RATIO, this.hull.shieldCapacity);
+			this.shield = Math.min(this.shield + this.engine.repair * this.timeKeeper.update * HEAT_COOLDOWN_RATIO, this.hull.shieldCapacity);
 			//if(this.notable / 8 & 1 && this.shield < this.shieldCapacity / 2) {
 				// emergencydrive double repair speed while under halved shield
 				//this.shield = Math.min(this.shield + this.engine.repair * updateTime / 60, this.shieldCapacity);
@@ -202,6 +204,7 @@ function Cursor() {
   }
 
   this.draw = function draw() {
+    this.timeKeeper.onDraw();
     // Clear cusor at center
     var canvadHud = CANVAS_HEADUP.getContext('2d');
     canvadHud.clearRect( (CANVAS_WIDTH - this.hitbox.width - 30)/2, (CANVAS_HEIGHT - this.hitbox.height - 30)/2, this.hitbox.width + 30, this.hitbox.height + 30);
@@ -216,6 +219,10 @@ function Cursor() {
     // emergencydrive effect
 
     this.hud();
+  }
+
+  this.iddle = function iddle() {
+    this.timeKeeper.onIddle();
   }
 
   this.collide = function collide(other) {

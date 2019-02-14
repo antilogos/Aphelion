@@ -4,7 +4,8 @@ PASSERBY_ANIMATION_DEATHTIME = 600;
  *
  */
 function Passerby() {
-  this.last = {seen: Date.now(), fire: Date.now(), update: 0, dh: 0, df: 0};
+  this.last = {fire: Date.now(), dh: 0, df: 0};
+  this.timeKeeper = new TimeKeeper();
   this.behaviour = new ChasingBehaviour(this);
   this.hitbox = {h: 0, v: 0, width: 14, height: 14, radius: 7, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
@@ -19,14 +20,14 @@ function Passerby() {
       && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
       && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
       && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
-      timeUpdate(this);
+      this.timeKeeper.onUpdate();
       checkDeath(this);
 
       // Manage movement & firing
       if(this.behaviour.move && this.state.alive) this.behaviour.move();
 
-      this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
-      this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
+      this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.timeKeeper.update;
+      this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.timeKeeper.update;
     }
   }
 
@@ -37,6 +38,7 @@ function Passerby() {
       && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
       && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
       // Draw
+      this.timeKeeper.onDraw();
       var canvasFg = CANVAS_FOREGROUND.getContext('2d');
       canvasFg.beginPath();
       if(this.state.lifespan > 0) {
@@ -69,6 +71,10 @@ function Passerby() {
     this.state.alive = false;
     this.state.lifespan = PASSERBY_ANIMATION_DEATHTIME;
     // Add animation
+  }
+
+  this.iddle = function iddle() {
+    this.timeKeeper.onIddle();
   }
 }
 
@@ -106,6 +112,10 @@ function PasserbyFactory() {
     canvasFg.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.passerbyList.forEach(function draw(p) { p.draw() });
     if(this.passerbyList.length < 10) this.spawn();
+  }
+
+  this.iddle = function iddle() {
+    this.passerbyList.forEach(function iddle(p) { p.iddle() });
   }
 }
 

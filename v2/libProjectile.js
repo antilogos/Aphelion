@@ -8,7 +8,8 @@ function Projectile(weapon) {
   this.velocity = {h: 0, v: 0, n:25};
   this.weapon = {target: 0, damage: 100};
   this.state = {alive: true, lifespan: 6000};
-  this.last = {seen: Date.now(), update: 0, dh: 0, df: 0};
+  this.last = {dh: 0, df: 0};
+  this.timeKeeper = new TimeKeeper();
 
   this.update = function update() {
      // Delete old Projectile
@@ -20,14 +21,14 @@ function Projectile(weapon) {
        && this.hitbox.h - cursor.hitbox.h < CANVAS_WIDTH + this.hitbox.width
        && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
        && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
-       timeUpdate(this);
+       this.timeKeeper.onUpdate();
        checkDeath(this);
 
        // Manage movement
        if(this.behaviour.move && this.state.alive) this.behaviour.move();
 
-       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
-       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.last.update;
+       this.hitbox.h += this.velocity.h * ENGINE_TIME_TO_PIXEL_CELERITY * this.timeKeeper.update;
+       this.hitbox.v += this.velocity.v * ENGINE_TIME_TO_PIXEL_CELERITY * this.timeKeeper.update;
      }
   }
 
@@ -38,6 +39,7 @@ function Projectile(weapon) {
      && this.hitbox.v - cursor.hitbox.v > - CANVAS_HEIGHT - this.hitbox.height
      && this.hitbox.v - cursor.hitbox.v < CANVAS_HEIGHT + this.hitbox.height) {
      // Draw
+     this.timeKeeper.onDraw();
      var canvasFg = CANVAS_FOREGROUND.getContext('2d');
      canvasFg.beginPath();
      canvasFg.arc(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2, this.hitbox.radius, 0, 2 * Math.PI, false);
@@ -56,6 +58,10 @@ function Projectile(weapon) {
    this.state.alive = false;
    this.state.lifespan = PROJECTILE_ANIMATION_DEATHTIME;
    // Add animation
+ }
+
+ this.iddle = function iddle() {
+   this.timeKeeper.onIddle();
  }
 }
 
@@ -90,6 +96,10 @@ function ProjectileFactory() {
 
  this.draw = function draw() {
    this.projectileList.forEach(function draw(p) { p.draw(); });
+ }
+
+ this.iddle = function iddle() {
+   this.projectileList.forEach(function iddle(p) { p.iddle() });
  }
 }
 

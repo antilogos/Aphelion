@@ -20,7 +20,12 @@ function ChasingBehaviour(object) {
     var diffH = diffN == 0 ? 0 : diffX / diffN * this.object.velocity.n;
     var diffV = diffN == 0 ? 0 : diffY / diffN * this.object.velocity.n;
     // Displacement vector between target and anticipated movement
-    var diffT = this.object.last.updateTime;
+    var diffT = this.object.timeKeeper.updateTime;
+
+    // Calculate corrective trajectory angle
+    // Calculate max corrective angle reachable in time
+    // Apply corrective angle
+
     /*
     var diffA = (diffH - this.object.last.dh - this.object.last.h) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
     var diffB = (diffV - this.object.last.dv - this.object.last.v) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
@@ -97,7 +102,7 @@ function FireAtWill(object) {
 
   this.move = function move() {
     // Always fire when ready
-    if(this.object.last.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 5 /*firerate factor for IA*/) {
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 5 /*firerate factor for IA*/) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
       var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.velocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.velocity}
