@@ -1,4 +1,4 @@
-var TURNOVER_SPEED_FACTOR_MS = 1;
+var TURNOVER_SPEED_FACTOR_MS = Math.PI / 100;
 /*
  *
  */
@@ -13,8 +13,36 @@ function ChasingBehaviour(object) {
 
   this.move = function move() {
     // Target vector normalize with velocity
-    var diffX = this.object.target.hitbox.h - this.object.hitbox.h;
-    var diffY = this.object.target.hitbox.v - this.object.hitbox.v;
+    var ox = this.object.target.hitbox.h - this.object.hitbox.h;
+    var oy = this.object.target.hitbox.v - this.object.hitbox.v;
+
+    // Calculate corrective trajectory angle
+    var thetaTarget = angularDistance(this.object.target.hitbox.h, this.object.target.hitbox.v, this.object.hitbox.h, this.object.hitbox.v);
+    var thetaCurrent = angularDistance(this.object.velocity.h, this.object.velocity.v, this.object.hitbox.h, this.object.hitbox.v);
+    // Angles are between 0 and 2*PI, diff will be put into a [-PI:PI] interval, so that 0 to PI is turning left and 0 to -PI is turning right
+    // Then, apply the turning radiant maximum speed to it to get the max angle reachable in time (should apply square function to smooth displacement without impact from framerate)
+    var thetaDiff = ((thetaTarget - thetaCurrent + Math.PI*2 ) % (Math.PI*2));
+    if(thetaDiff > Math.PI) {
+      var thetaNow = Math.max(-2*Math.PI + thetaDiff, -1 * TURNOVER_SPEED_FACTOR_MS * this.object.timeKeeper.update);
+    } else {
+      var thetaNow = Math.min(thetaDiff, TURNOVER_SPEED_FACTOR_MS * this.object.timeKeeper.update);
+    }
+    //console.log("dirrection angle: " + thetaCurrent.toFixed(2));
+    //console.log("correction angle: " + thetaNow.toFixed(2));
+    // Apply corrective angle
+    var diffX = -1*Math.cos(thetaCurrent + thetaNow);
+    var diffY = -1*Math.sin(thetaCurrent + thetaNow);
+//https://www.w3schools.com/code/tryit.asp?filename=G1DEJM5IYDOY
+    /*
+    var diffVelN = Math.sqrt(Math.pow(diffVelH,2)+Math.pow(diffVelV,2));
+    if(diffVelN > Math.sqrt(Math.pow(this.object.last.dh,2)+Math.pow(this.object.last.dv,2))) {
+      // Adjust target velocity within the object capability
+    }
+    // Change velocity
+    this.object.velocity.h = diffVelH / TURNOVER_SPEED_FACTOR_MS;
+    this.object.velocity.v = diffVelV / TURNOVER_SPEED_FACTOR_MS;
+    */
+
     // Target trajectory
     var diffN = Math.sqrt(Math.pow(diffX,2)+Math.pow(diffY,2));
     var diffH = diffN == 0 ? 0 : diffX / diffN * this.object.velocity.n;
@@ -22,27 +50,6 @@ function ChasingBehaviour(object) {
     // Displacement vector between target and anticipated movement
     var diffT = this.object.timeKeeper.updateTime;
 
-    // Calculate corrective trajectory angle
-    // Calculate max corrective angle reachable in time
-    // Apply corrective angle
-
-    /*
-    var diffA = (diffH - this.object.last.dh - this.object.last.h) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
-    var diffB = (diffV - this.object.last.dv - this.object.last.v) * 100 / this.object.velocity.n * TURNOVER_SPEED_FACTOR_MS / diffT;
-    var diffVelH = diffA + this.object.last.dh + this.object.last.h;
-    var diffVelV = diffB + this.object.last.dv + this.object.last.v;
-
-    var diffVelN = Math.sqrt(Math.pow(diffVelH,2)+Math.pow(diffVelV,2));
-    if(diffVelN > Math.sqrt(Math.pow(this.object.last.dh,2)+Math.pow(this.object.last.dv,2))) {
-      // Adjust target velocity within the object capability
-    }
-    // Save new speed
-    this.object.last.dh = this.object.velocity.h;
-    this.object.last.dv = this.object.velocity.v;
-    // Change velocity
-    this.object.velocity.h = diffVelH / TURNOVER_SPEED_FACTOR_MS;
-    this.object.velocity.v = diffVelV / TURNOVER_SPEED_FACTOR_MS;
-    */
     // TODO smooth turn
     this.object.last.dh = this.object.velocity.h;
     this.object.last.dv = this.object.velocity.v;

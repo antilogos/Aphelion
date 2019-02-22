@@ -47,7 +47,7 @@ function TimeKeeper() {
   }
 
   this.onUpdate = function onUpdate() {
-    now = Date.now();
+    var now = Date.now();
     // Getting focus back
     if(this.active == -1) {
       // Remove iddle time from the last seen
@@ -73,4 +73,16 @@ function TimeKeeper() {
       this.active = -1;
     }
   }
+}
+
+/**
+ * Define the direction in Radiant from object x to object y.
+ * Return 0 for south, PI/2 for west, PI for north and 3/2PI for east
+ */
+function angularDistance(xh, xv, yh, yv) {
+  var h = yh - xh;
+  var v = yv - xv;
+  if(Math.sign(h) == -1) theta = Math.atan(v/h) ;
+  else theta = Math.atan(v/h) + Math.PI;
+  return theta % (2*Math.PI);
 }
