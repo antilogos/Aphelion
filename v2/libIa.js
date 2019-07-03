@@ -1,4 +1,4 @@
-var TURNOVER_SPEED_FACTOR_MS = Math.PI / 100;
+var TURNOVER_SPEED_FACTOR_MS = Math.PI / 2000;
 /*
  *
  */
@@ -18,7 +18,7 @@ function ChasingBehaviour(object) {
 
     // Calculate corrective trajectory angle
     var thetaTarget = angularDistance(this.object.target.hitbox.h, this.object.target.hitbox.v, this.object.hitbox.h, this.object.hitbox.v);
-    var thetaCurrent = angularDistance(this.object.velocity.h, this.object.velocity.v, this.object.hitbox.h, this.object.hitbox.v);
+    var thetaCurrent = angularDistance(this.object.velocity.h, this.object.velocity.v, 0, 0);
     // Angles are between 0 and 2*PI, diff will be put into a [-PI:PI] interval, so that 0 to PI is turning left and 0 to -PI is turning right
     // Then, apply the turning radiant maximum speed to it to get the max angle reachable in time (should apply square function to smooth displacement without impact from framerate)
     var thetaDiff = ((thetaTarget - thetaCurrent + Math.PI*2 ) % (Math.PI*2));
@@ -98,8 +98,8 @@ function FleeingBehaviour(object) {
     // Save new speed
     this.object.last.dh = this.object.velocity.h;
     this.object.last.dv = this.object.velocity.v;
-    this.object.velocity.h = diffH;
-    this.object.velocity.v = diffV;
+    //this.object.velocity.h = diffH;
+    //this.object.velocity.v = diffV;
   }
 }
 

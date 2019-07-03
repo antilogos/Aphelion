@@ -57,6 +57,11 @@ function Passerby() {
       }
 
       canvasFg.stroke();
+
+      canvasFg.beginPath();
+      canvasFg.moveTo(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2);
+      canvasFg.lineTo(this.hitbox.h - cursor.hitbox.h + CANVAS_WIDTH / 2 + this.velocity.h, this.hitbox.v - cursor.hitbox.v + CANVAS_HEIGHT / 2 + this.velocity.v);
+      canvasFg.stroke();
     }
   }
 
