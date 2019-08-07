@@ -2,9 +2,14 @@
 var MARGIN_TOP=15;
 var MARGIN_LEFT=5;
 var menuHangar = new Menu();
+var cursorPreview = Object.assign({}, cursor);
 
 var button_Hangar_back = new Button("Back", 450, 350, 100, 30, function toBack() { screenStack.shift(); });
 menuHangar.button.push(button_Hangar_back);
+
+// Left part ///////////////////////////////////////////////////////////////////
+
+// Hull //
 
 var buttonListLayout_hangar_hull = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
@@ -44,6 +49,8 @@ var check_buttonList_hangar_hull = function() {
 }
 check_buttonList_hangar_hull();
 
+// Engine //
+
 var buttonListLayout_hangar_engine = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
@@ -81,6 +88,8 @@ var check_buttonList_hangar_engine = function() {
   });
 }
 check_buttonList_hangar_engine();
+
+// Shield //
 
 var buttonListLayout_hangar_shield = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
   {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
@@ -120,10 +129,12 @@ var check_buttonList_hangar_shield = function() {
 }
 check_buttonList_hangar_shield();
 
+// Middle part /////////////////////////////////////////////////////////////////
+
 var button_hangar_display = new Button("", CANVAS_WIDTH/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT-MARGIN_TOP*2, null);
 button_hangar_display.context = CANVAS_MENU.getContext('2d');
 button_hangar_display.draw = function draw() {
-
+      // Clear and set font
       this.context.clearRect(this.x, this.y, this.width, this.height);
       this.context.beginPath();
       this.context.lineWidth = 2;
@@ -182,6 +193,7 @@ button_hangar_display.draw = function draw() {
       this.context.fillStyle = gradient;
       this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+19.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.engine.dissipation/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
 
+      // Space consumption
       this.context.fillStyle = "black";
       this.context.fillText("Space: ", this.x+MARGIN_LEFT, this.y+MARGIN_TOP+21*GLOBAL_TEXT_SIZE);
       var totalCargo = cursor.hull.cargo*4;
@@ -197,3 +209,48 @@ button_hangar_display.draw = function draw() {
   };
 
 menuHangar.button.push(button_hangar_display);
+
+// Right part /////////////////////////////////////////////////////////////////
+
+// Weapon //
+
+var buttonListLayout_hangar_weapon = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
+
+var buttonListResearch_weapon = [];
+
+// Check technology requirement and add button to menu
+var check_buttonList_hangar_weapon = function() {
+  // Remove the button
+  buttonListResearch_weapon.forEach( function removeOld(b) {
+    menuHangar.button.splice(menuHangar.button.indexOf(b), 1);
+  });
+  buttonListResearch_weapon = [];
+  // Add the button with the correct requirement
+  topOfResearch(WEAPON_LIST.filter(function techlevelReq(weapon) {
+    return isUnlocked(weapon);
+  })).map( function(element, index) {
+    return [element, buttonListLayout_hangar_weapon[index]];
+  }).forEach( function weaponButton(weaponAndLayout) {
+    var weaponData = weaponAndLayout[0];
+    var layoutData = weaponAndLayout[1];
+    var b = new Button(weaponData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectWeapon() {
+      //TODO list of weapon
+      cursor.weaponData = [weaponData];
+    });
+    buttonListResearch_weapon.push(b);
+  });
+  // Add the button
+  buttonListResearch_weapon.forEach( function inserNew(b) {
+    menuHangar.button.push(b);
+  });
+}
+check_buttonList_hangar_weapon();
+// MODULE_LIST
+// SUBSYSTEM_LIST
