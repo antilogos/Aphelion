@@ -240,11 +240,13 @@ var check_buttonList_hangar_weapon = function() {
   }).forEach( function weaponButton(weaponAndLayout) {
     var weaponData = weaponAndLayout[0];
     var layoutData = weaponAndLayout[1];
-    var b = new Button(weaponData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectWeapon() {
-      //TODO list of weapon
-      cursor.weaponData = [weaponData];
-    });
-    buttonListResearch_weapon.push(b);
+    if(layoutData) {
+      var b = new Button(weaponData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectWeapon() {
+        //TODO list of weapon
+        cursor.weaponData = [weaponData];
+      });
+      buttonListResearch_weapon.push(b);
+    }
   });
   // Add the button
   buttonListResearch_weapon.forEach( function inserNew(b) {

@@ -99,7 +99,7 @@ function PasserbyFactory() {
     passerby.velocity.v = Math.sin(random) * -1 * passerby.velocity.n;
     var randomBehaviour = Math.floor(Math.random() * 3);
     if(randomBehaviour == 2) {
-      passerby.behaviour = new ChasingBehaviour(passerby);
+      passerby.behaviour = new ComplexeBehaviourSkirmish(passerby);
     } else if(randomBehaviour == 1) {
       passerby.behaviour = new ComplexeBehaviourHarrier(passerby);
     } else {

@@ -143,16 +143,23 @@ function FireAtWillBehaviour(object) {
 
 function UnleashBehaviour(object) {
   this.object = object;
+  this.projToReload = 0;
+  this.chilling = false;
 
   this.move = function move() {
-    // Always fire when ready
-    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 3  /*firerate factor for IA*/
-      && Date.now()%(this.object.weapon.fireRate * 10) <6) {
+    // Wait until max heat then fire at will untill no more heat
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 1  /*firerate factor for IA*/) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
       var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.velocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.velocity}
       // Confirm creation of projectile
-      projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
+      if(Math.random() * 120 > this.projToReload && !this.chilling) {
+        this.projToReload = this.projToReload + 1;
+        projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
+      } else {
+        this.projToReload = this.projToReload - 1;
+        this.chilling = true;
+      }
       // Update firing state
       this.object.last.fire = Date.now();
     }
@@ -218,8 +225,21 @@ function ComplexeBehaviourSkirmish(object) {
   this.unleashBehaviour = new UnleashBehaviour(object);
 
   this.move = function move() {
-    //alternate between flee and snipe if close, dodge and suppress if long, and chase and unleash
-
+    // Determine behaviour to have dependending on the distance to target
+    var distance = Math.sqrt(Math.pow(this.object.hitbox.h - this.object.target.hitbox.h,2) + Math.pow(this.object.hitbox.v - this.object.target.hitbox.v,2));
+    if(distance < PASSERBY_SPAWN_CIRCLE * .65) {
+      this.fleeingBehaviour.move();
+      this.snipeBehaviour.move();
+      this.inConfortZone = false;
+    } else if(distance > PASSERBY_SPAWN_CIRCLE * 1.35) {
+      this.dodgingBehaviour.move();
+      this.suppressBehaviour.move();
+      this.inConfortZone = false;
+    } else {
+      this.chasingBehaviour.move();
+      this.unleashBehaviour.move();
+      this.inConfortZone = true;
+    }
   }
 }
 
