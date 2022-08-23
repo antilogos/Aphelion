@@ -7,7 +7,8 @@ var THRUST_PIXEL_RADIUS = Math.min(CANVAS_HEIGHT, CANVAS_WIDTH)/2;
 /*
  * Cursor logic
  * TODO add firing and collision management
- * TODO modification to hull, engine, weapon and module
+ * DONE modification to hull, engine, weapon and module
+ * NOTE: Grazing: collision with grazing area and leaving without projectile dying
  */
 function Cursor() {
   // Information to display
@@ -31,7 +32,7 @@ function Cursor() {
   this.update = function update() {
     // Snapeshot all last info
     this.timeKeeper.onUpdate();
-    
+
     this.last.h = this.hitbox.h;
     this.last.v = this.hitbox.v;
     // Make the acceleration not suffer from framerate drop, = Frequency of refresh
@@ -65,7 +66,7 @@ function Cursor() {
 
     // Normalize inertia if go out of bound
 		var speedN = Math.sqrt(Math.pow(this.velocity.h,2)+Math.pow(this.velocity.v,2));
-		if(speedN > this.hull.velocity) {
+		if(speedN > this.hull.terminalVelocity) {
       // afterburner increase range of acceleration at the cost of heat
       /*
       if(this.heat > (normal/this.hull.velocity - 1) * this.heatCapacity / 50) {
@@ -77,8 +78,8 @@ function Cursor() {
         this.inertia.v = this.hull.velocity / normal * this.inertia.v;
       }
       */
-			this.velocity.h = speedN == 0 ? 0 : this.hull.velocity / speedN * this.velocity.h;
-			this.velocity.v = speedN == 0 ? 0 : this.hull.velocity / speedN * this.velocity.v;
+			this.velocity.h = speedN == 0 ? 0 : this.hull.terminalVelocity / speedN * this.velocity.h;
+			this.velocity.v = speedN == 0 ? 0 : this.hull.terminalVelocity / speedN * this.velocity.v;
     } else {
       // inertiacore is always at max speed
     }
@@ -123,7 +124,7 @@ function Cursor() {
         if(this.heat > this.weapon[0].heat) {
           // Define projectile state
           if(this.rightClickLock.on) {
-            var initVel = {h: this.rightClickLock.h * this.weapon[0].velocity, v: this.rightClickLock.v * this.weapon[0].velocity}
+            var initVel = {h: this.rightClickLock.h * this.weapon[0].terminalVelocity, v: this.rightClickLock.v * this.weapon[0].terminalVelocity}
             // Confirm creation of projectile
             projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
           } else {
@@ -131,8 +132,8 @@ function Cursor() {
             // Regulate normal of velocity of projectile, speed ramp up rapidly to 100% within Thrust pixel radius and then slowly to a maximum of 125%
             var projVelN = Math.min( Math.sqrt(initVelN / THRUST_PIXEL_RADIUS) + 0.25, 1.25);
             var initVel = initVelN == 0 ? {h:0, v:0} :
-              {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * projVelN * this.weapon[0].velocity,
-              v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * projVelN * this.weapon[0].velocity};
+              {h: (inputListener.mouseX - CANVAS_WIDTH/2) / initVelN * projVelN * this.weapon[0].terminalVelocity,
+              v: (inputListener.mouseY - CANVAS_HEIGHT/2) / initVelN * projVelN * this.weapon[0].terminalVelocity};
             // Confirm creation of projectile
             projectileFactory.spawn(this.hitbox, initVel, this.weapon[0]);
           }

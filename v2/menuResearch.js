@@ -1,4 +1,4 @@
-/* Menu 4 - Research */
+  /* Menu 4 - Research */
 var menuResearch = new Menu();
 
 var MARGIN_TOP=15;
@@ -11,7 +11,7 @@ var button_Research_back = new Button("Back", 512, 340, 80, 28, function toBack(
   check_buttonList_hangar_engine();
   check_buttonList_hangar_shield();
   screenStack.shift();
-});
+}, null);
 menuResearch.button.push(button_Research_back);
 
 var button_Research_launch = new Button("Develop", 410, 340, 80, 28, function developResearch() {
@@ -26,13 +26,13 @@ var buttonList_research = RESEARCH_LIST.forEach( function researchButton(researc
   var layoutData = layoutTranspose(researchData.slide, researchData.mount);
   var b = new Button(researchData.code, layoutData.x, layoutData.y, HEXAGON_SIZE*3/4, HEXAGON_SIZE, function selectResearch() {
     current_research_node = researchData;
-  });
+  }, null);
   menuResearch.button.push(b);
 });
 
 var current_research_node = null;
 
-var button_research_leveldisplay = new Button("", 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, null);
+var button_research_leveldisplay = new Button("", 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, null, null);
 button_research_leveldisplay.context = CANVAS_BACKGROUND.getContext('2d');
 button_research_leveldisplay.draw = function draw() {
   this.context.clearRect(this.x, this.y, this.width, this.height);
@@ -55,7 +55,7 @@ button_research_leveldisplay.draw = function draw() {
 
 menuResearch.button.push(button_research_leveldisplay);
 
-var button_research_display = new Button("", CANVAS_WIDTH*2/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT*4/5-MARGIN_TOP*2, null);
+var button_research_display = new Button("", CANVAS_WIDTH*2/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT*4/5-MARGIN_TOP*2, null, null);
 button_research_display.context = CANVAS_MENU.getContext('2d');
 button_research_display.draw = function draw() {
       this.context.clearRect(this.x, this.y, this.width, this.height);
@@ -90,7 +90,7 @@ button_research_display.draw = function draw() {
       }
       /*
       this.context.fillStyle = "black";
-      this.context.fillText("Velocity: " + cursor.hull.velocity, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7*GLOBAL_TEXT_SIZE);
+      this.context.fillText("Terminal velocity: " + cursor.hull.terminalVelocity, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7*GLOBAL_TEXT_SIZE);
       this.context.fillStyle = gradient;
       this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.hull.velocity/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
 

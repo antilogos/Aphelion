@@ -9,7 +9,7 @@ function Passerby() {
   this.behaviour = new ChasingBehaviour(this);
   this.hitbox = {h: 0, v: 0, width: 14, height: 14, radius: 7, type: COLLISION_MASK_PASSERBY, shape: COLLISION_SHAPE_ROUND};
   this.velocity = {h: 0, v: 0, n:25};
-  this.weapon = new Weapon();
+  this.weapon = WEAPON_LIST[Math.floor(Math.random()*WEAPON_LIST.length)];
   this.hull = {shield: 100};
   this.state = {alive: true, lifespan: -1};
   this.target = cursor;
@@ -99,7 +99,7 @@ function PasserbyFactory() {
     passerby.velocity.v = Math.sin(random) * -1 * passerby.velocity.n;
     var randomBehaviour = Math.floor(Math.random() * 3);
     if(randomBehaviour == 2) {
-      passerby.behaviour = new ComplexeBehaviourSkirmish(passerby);
+      passerby.behaviour = new ChasingBehaviour(passerby);
     } else if(randomBehaviour == 1) {
       passerby.behaviour = new ComplexeBehaviourHarrier(passerby);
     } else {

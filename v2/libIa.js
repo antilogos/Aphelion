@@ -1,4 +1,5 @@
 var TURNOVER_SPEED_FACTOR_MS = Math.PI / 2000;
+var AI_WEAPON_FIRERATE_FACTOR = 0.2; // AI don't have heat (for now?)
 /*
  *
  */
@@ -9,6 +10,18 @@ function DefaultBehaviour(object) {
 }
 
 // SIMPLE MOVEMENT BEHAVIOUR ///////////////////////////////////////////////////
+
+function StationnaryBehaviour(object) {
+  this.object = object;
+
+  this.move = function move() {
+    // Does not move
+    this.object.last.dh = this.object.velocity.h;
+    this.object.last.dv = this.object.velocity.v;
+    this.object.velocity.h = 0;
+    this.object.velocity.v = 0;
+  }
+}
 
 function ChasingBehaviour(object) {
   this.object = object;
@@ -129,10 +142,10 @@ function FireAtWillBehaviour(object) {
 
   this.move = function move() {
     // Always fire when ready
-    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 5 /*firerate factor for IA*/) {
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * this.object.weapon.heat * AI_WEAPON_FIRERATE_FACTOR) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
-      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.velocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.velocity}
+      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.terminalVelocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.terminalVelocity}
       // Confirm creation of projectile
       projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
       // Update firing state
@@ -143,25 +156,21 @@ function FireAtWillBehaviour(object) {
 
 function UnleashBehaviour(object) {
   this.object = object;
-  this.projToReload = 0;
-  this.chilling = false;
+  this.unleashCount = 0;
 
   this.move = function move() {
-    // Wait until max heat then fire at will untill no more heat
-    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 1  /*firerate factor for IA*/) {
+    // Always fire when ready
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * this.object.weapon.heat/2 * AI_WEAPON_FIRERATE_FACTOR) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
-      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.velocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.velocity}
-      // Confirm creation of projectile
-      if(Math.random() * 120 > this.projToReload && !this.chilling) {
-        this.projToReload = this.projToReload + 1;
+      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.terminalVelocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.terminalVelocity}
+      if(this.unleashCount < 3) {
+        // Confirm creation of projectile
         projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
-      } else {
-        this.projToReload = this.projToReload - 1;
-        this.chilling = true;
       }
       // Update firing state
       this.object.last.fire = Date.now();
+      this.unleashCount = (this.unleashCount +1) %7;
     }
   }
 }
@@ -179,11 +188,11 @@ function SnipeBehaviour(object) {
 
   this.move = function move() {
     // Fire when reaching maximum heat
-    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 6 /*firerate factor for IA*/) {
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * this.object.weapon.heat * AI_WEAPON_FIRERATE_FACTOR) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
       var projection = {h: 0, v: 0}; // TODO aim at the point of impact
-      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.velocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.velocity}
+      var initVel = initVelN == 0 ? {h:0, v:0} : {h: (this.object.target.hitbox.h - this.object.hitbox.h) / initVelN * this.object.weapon.terminalVelocity, v: (this.object.target.hitbox.v - this.object.hitbox.v) / initVelN * this.object.weapon.terminalVelocity}
       // Confirm creation of projectile
       projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
       // Update firing state
@@ -197,14 +206,14 @@ function SuppressBehaviour(object) {
 
   this.move = function move() {
     // Randomly fire (following a seed) if able (seed based on fireate)
-    if(this.object.timeKeeper.seen - this.object.last.fire > 1000/this.object.weapon.fireRate * 5 /*firerate factor for IA*/
+    if(this.object.timeKeeper.seen - this.object.last.fire > 1000 / this.object.weapon.fireRate * this.object.weapon.heat * AI_WEAPON_FIRERATE_FACTOR
       && Math.floor(Math.random()*1000) > 990) {
       // Define projectile state
       var initVelN = Math.sqrt(Math.pow(this.object.target.hitbox.h - this.object.hitbox.h,2) + Math.pow(this.object.target.hitbox.v - this.object.hitbox.v,2));
       // Aim at a random point around the target
       var deviation = {h: (this.object.target.hitbox.h - this.object.hitbox.h) * (1+ (Math.floor(Math.random()*20) -10)/100),
         v: (this.object.target.hitbox.v - this.object.hitbox.v) * (1+ (Math.floor(Math.random()*20) -10)/100)};
-      var initVel = initVelN == 0 ? {h:0, v:0} : {h: deviation.h / initVelN * this.object.weapon.velocity, v: deviation.v / initVelN * this.object.weapon.velocity}
+      var initVel = initVelN == 0 ? {h:0, v:0} : {h: deviation.h / initVelN * this.object.weapon.terminalVelocity, v: deviation.v / initVelN * this.object.weapon.terminalVelocity}
       // Confirm creation of projectile
       projectileFactory.spawn(this.object.hitbox, initVel, this.weapon);
       // Update firing state
@@ -225,21 +234,8 @@ function ComplexeBehaviourSkirmish(object) {
   this.unleashBehaviour = new UnleashBehaviour(object);
 
   this.move = function move() {
-    // Determine behaviour to have dependending on the distance to target
-    var distance = Math.sqrt(Math.pow(this.object.hitbox.h - this.object.target.hitbox.h,2) + Math.pow(this.object.hitbox.v - this.object.target.hitbox.v,2));
-    if(distance < PASSERBY_SPAWN_CIRCLE * .65) {
-      this.fleeingBehaviour.move();
-      this.snipeBehaviour.move();
-      this.inConfortZone = false;
-    } else if(distance > PASSERBY_SPAWN_CIRCLE * 1.35) {
-      this.dodgingBehaviour.move();
-      this.suppressBehaviour.move();
-      this.inConfortZone = false;
-    } else {
-      this.chasingBehaviour.move();
-      this.unleashBehaviour.move();
-      this.inConfortZone = true;
-    }
+    //alternate between flee and snipe if close, dodge and suppress if long, and chase and unleash
+
   }
 }
 
@@ -314,5 +310,28 @@ function ComplexeBehaviourFairy(object) {
 
   this.move = function move() {
     // alternate randomly between orbit and suppress, and dodge and snipe
+  }
+}
+
+function DebugIdleBehaviour(object) {
+  this.object = object;
+  this.stationnaryBehaviour = new StationnaryBehaviour(object);
+  this.holdBehaviour = new FireAtWillBehaviour(object);
+
+  this.move = function move() {
+    this.stationnaryBehaviour.move();
+    this.holdBehaviour.move();
+  }
+}
+
+
+function DebugIdle2Behaviour(object) {
+  this.object = object;
+  this.stationnaryBehaviour = new StationnaryBehaviour(object);
+  this.holdBehaviour = new UnleashBehaviour(object);
+
+  this.move = function move() {
+    this.stationnaryBehaviour.move();
+    this.holdBehaviour.move();
   }
 }

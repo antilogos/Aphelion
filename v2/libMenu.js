@@ -66,13 +66,14 @@ function Menu() {
   }
 }
 
-function Button(label, x, y, width, height, action) {
+function Button(label, x, y, width, height, action, hover) {
   this.label = label;
   this.x = x;
   this.y = y;
   this.width = width;
   this.height = height;
   this.action = action;
+  this.hover = hover;
   this.context = CANVAS_MENU.getContext('2d');
   this.draw = function draw() {
     if(inputListener.mouseHasClicked) {
@@ -89,6 +90,7 @@ function Button(label, x, y, width, height, action) {
         this.ready = false;
         this.action();
       }
+      if(this.hover != null) this.hover();
     } else {
       var colour = '#9999FF';
       this.ready = false;

@@ -4,8 +4,22 @@ var MARGIN_LEFT=5;
 var menuHangar = new Menu();
 var cursorPreview = Object.assign({}, cursor);
 
-var button_Hangar_back = new Button("Back", 450, 350, 100, 30, function toBack() { screenStack.shift(); });
+var button_Hangar_back = new Button("Back", 450, 350, 100, 30, function toBack() { screenStack.shift(); }, null);
 menuHangar.button.push(button_Hangar_back);
+
+menuHangar.draw = function draw() {
+  var context = CANVAS_MENU.getContext('2d');
+  context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  this.button.forEach(function draw(b) { b.draw(); });
+  // Display cursor
+  context.beginPath();
+  context.strokeStyle = '#009900';
+  context.arc(inputListener.mouseX, inputListener.mouseY, 2, 0, Math.PI*2, true);
+  context.stroke();
+  cursorPreview.hull = cursor.hull;
+  cursorPreview.engine = cursor.engine;
+  cursorPreview.shield = cursor.shield;
+};
 
 // Left part ///////////////////////////////////////////////////////////////////
 
@@ -39,6 +53,8 @@ var check_buttonList_hangar_hull = function() {
     var layoutData = hullAndLayout[1];
     var b = new Button(hullData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectHull() {
       cursor.hull = hullData;
+    }, function previewHull() {
+      cursorPreview.hull = hullData;
     });
     buttonListResearch_hull.push(b);
   });
@@ -79,6 +95,8 @@ var check_buttonList_hangar_engine = function() {
     var layoutData = engineAndLayout[1];
     var b = new Button(engineData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectEngine() {
       cursor.engine = engineData;
+    }, function previewEngine() {
+      cursorPreview.engine = engineData;
     });
     buttonListResearch_engine.push(b);
   });
@@ -119,7 +137,7 @@ var check_buttonList_hangar_shield = function() {
     var layoutData = shieldAndLayout[1];
     var b = new Button(shieldData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectShield() {
       cursor.generator = shieldData;
-    });
+    }, null);
     buttonListResearch_shield.push(b);
   });
   // Add the button
@@ -131,9 +149,42 @@ check_buttonList_hangar_shield();
 
 // Middle part /////////////////////////////////////////////////////////////////
 
-var button_hangar_display = new Button("", CANVAS_WIDTH/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT-MARGIN_TOP*2, null);
+function createGradient(context, from, to) {
+  var gradient = context.createLinearGradient(from, 0, to, 0);
+  gradient.addColorStop(0, "#000000");
+  gradient.addColorStop(0.1, "#990000");
+  gradient.addColorStop(0.5, "#CCCC33");
+  gradient.addColorStop(1, "#33CCCC");
+  gradient.addColorStop(0.9, "#009900");
+  return gradient
+};
+
+function displayInformation(displayContext, displayText, displayData, baseX, baseY, previewData, scale) {
+  if(displayData != previewData) {
+    var gradientPreview = displayContext.createLinearGradient(baseX, 0, baseX+CANVAS_WIDTH/3-2*MARGIN_LEFT, 0);
+    gradientPreview.addColorStop(0, "#000000");
+    gradientPreview.addColorStop(0.1, "#990000");
+    gradientPreview.addColorStop(0.5, "#CCCC33");
+    gradientPreview.addColorStop(0.9, "#009900");
+    gradientPreview.addColorStop(1, "#33CCCC");
+    if(displayData > previewData) displayContext.fillStyle = "orange"
+    else displayContext.fillStyle = "blue";
+    displayContext.fillText(displayText + ": " + previewData, baseX, baseY);
+    displayContext.fillStyle = gradientPreview;
+    displayContext.fillRect(baseX, baseY+0.4*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*previewData*scale-2*MARGIN_LEFT, 0.6*GLOBAL_TEXT_SIZE);
+  } else {
+    displayContext.fillStyle = "black";
+    displayContext.fillText(displayText + ": " + displayData, baseX, baseY);
+  }
+  var gradient = createGradient(displayContext, baseX, baseX+CANVAS_WIDTH/3-2*MARGIN_LEFT);
+  displayContext.fillStyle = gradient;
+  displayContext.fillRect(baseX, baseY+0.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*displayData*scale-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
+};
+
+var button_hangar_display = new Button("", CANVAS_WIDTH/3+MARGIN_LEFT, MARGIN_TOP, CANVAS_WIDTH/3-MARGIN_LEFT*2, CANVAS_HEIGHT-MARGIN_TOP*2, null, null);
 button_hangar_display.context = CANVAS_MENU.getContext('2d');
 button_hangar_display.draw = function draw() {
+      //cursorPreview = Object.assign({}, cursor);
       // Clear and set font
       this.context.clearRect(this.x, this.y, this.width, this.height);
       this.context.beginPath();
@@ -151,47 +202,13 @@ button_hangar_display.draw = function draw() {
       this.context.fillText("Generator: " + cursor.generator.code + " " +cursor.generator.name, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+5*GLOBAL_TEXT_SIZE);
 
       // Stats
-      var gradient = this.context.createLinearGradient(this.x+MARGIN_LEFT, 0, this.x+CANVAS_WIDTH/3-2*MARGIN_LEFT, 0);
-      gradient.addColorStop(0, "#000000");
-      gradient.addColorStop(0.1, "#990000");
-      gradient.addColorStop(0.5, "#CCCC33");
-      gradient.addColorStop(0.9, "#009900");
-      gradient.addColorStop(1, "#33CCCC");
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Velocity: " + cursor.hull.velocity, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.hull.velocity/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Thrust: " + cursor.engine.thrust, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+9*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+9.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.engine.thrust/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Shield capacity: " + (cursor.hull.shieldCapacity*cursor.generator.capacity/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+11*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+11.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*(cursor.hull.shieldCapacity*cursor.generator.capacity/100)/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Shield absorption: " + (cursor.hull.absorption*cursor.generator.absorption/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*(cursor.hull.absorption*cursor.generator.absorption/100)/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Shield repair: " + (cursor.engine.repair*cursor.generator.repair/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+15*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+15.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*(cursor.engine.repair*cursor.generator.repair/100)/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Heat tolerance: " + cursor.hull.heatTolerance, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+17*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+17.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.hull.heatTolerance/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
-
-      this.context.fillStyle = "black";
-      this.context.fillText("Heat dissipation: " + cursor.engine.dissipation, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+19*GLOBAL_TEXT_SIZE);
-      this.context.fillStyle = gradient;
-      this.context.fillRect(this.x+MARGIN_LEFT, this.y+MARGIN_TOP+19.2*GLOBAL_TEXT_SIZE, CANVAS_WIDTH/3*cursor.engine.dissipation/250-2*MARGIN_LEFT, GLOBAL_TEXT_SIZE);
+      displayInformation(this.context, "Terminal velocity", cursor.hull.terminalVelocity, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+7*GLOBAL_TEXT_SIZE, cursorPreview.hull.terminalVelocity, 1/250);
+      displayInformation(this.context, "Thrust", cursor.engine.thrust, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+9*GLOBAL_TEXT_SIZE, cursorPreview.engine.thrust, 1/250);
+      displayInformation(this.context, "Shield capacity", (cursor.hull.shieldCapacity*cursor.generator.capacity/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+11*GLOBAL_TEXT_SIZE, (cursorPreview.hull.shieldCapacity*cursorPreview.generator.capacity/100), 1/250);
+      displayInformation(this.context, "Shield absorption", (cursor.hull.absorption*cursor.generator.absorption/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+13*GLOBAL_TEXT_SIZE, (cursorPreview.hull.absorption*cursorPreview.generator.absorption/100), 1/250);
+      displayInformation(this.context, "Shield repair", (cursor.engine.repair*cursor.generator.repair/100), this.x+MARGIN_LEFT, this.y+MARGIN_TOP+15*GLOBAL_TEXT_SIZE, (cursorPreview.engine.repair*cursorPreview.generator.repair/100), 1/250);
+      displayInformation(this.context, "Heat tolerance", cursor.hull.heatTolerance, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+17*GLOBAL_TEXT_SIZE, cursorPreview.hull.heatTolerance, 1/250);
+      displayInformation(this.context, "Heat dissipation", cursor.engine.dissipation, this.x+MARGIN_LEFT, this.y+MARGIN_TOP+19*GLOBAL_TEXT_SIZE, cursorPreview.engine.dissipation, 1/250);
 
       // Space consumption
       this.context.fillStyle = "black";
@@ -214,14 +231,18 @@ menuHangar.button.push(button_hangar_display);
 
 // Weapon //
 
-var buttonListLayout_hangar_weapon = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
-  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+2*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
+var buttonListLayout_hangar_weapon = [{x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+0*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+2*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 0*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+4*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 1*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+4*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 2*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+4*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8},
+  {x: 3*CANVAS_WIDTH/3/4+MARGIN_LEFT+CANVAS_WIDTH*3/4, y: 4+MARGIN_TOP+4*GLOBAL_TEXT_SIZE+0*CANVAS_HEIGHT/3, width: CANVAS_WIDTH/3/4-MARGIN_LEFT*2, height: GLOBAL_TEXT_SIZE*2-8}];
 
 var buttonListResearch_weapon = [];
 
@@ -240,13 +261,11 @@ var check_buttonList_hangar_weapon = function() {
   }).forEach( function weaponButton(weaponAndLayout) {
     var weaponData = weaponAndLayout[0];
     var layoutData = weaponAndLayout[1];
-    if(layoutData) {
-      var b = new Button(weaponData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectWeapon() {
-        //TODO list of weapon
-        cursor.weaponData = [weaponData];
-      });
-      buttonListResearch_weapon.push(b);
-    }
+    var b = new Button(weaponData.code, layoutData.x, layoutData.y, layoutData.width, layoutData.height, function selectWeapon() {
+      //TODO list of weapon
+      cursor.weaponData = [weaponData];
+    }, null);
+    buttonListResearch_weapon.push(b);
   });
   // Add the button
   buttonListResearch_weapon.forEach( function inserNew(b) {
